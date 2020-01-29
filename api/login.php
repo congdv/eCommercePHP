@@ -12,10 +12,10 @@ define('TABLE', 'user');
 define('SCERET_KEY','eyJ0eXAiOi');
 
 # Database Connection
-include "./config/database.php";
+include "../config/database.php";
 
 #Json Web Token Library
-include "./lib/JWT.php";
+include "../lib/JWT.php";
 
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);

@@ -7,7 +7,7 @@ header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
 # Database Connection
-include "./config/database.php";
+include "../config/database.php";
 
 define('TABLE', 'user');
 define('COLUMNS', 'Id, Email');
