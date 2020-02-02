@@ -8,11 +8,19 @@ header('Content-Type: application/json');
 
 define('TABLE', 'product');
 
-# Secret key for JWT
-define('SCERET_KEY','eyJ0eXAiOi');
-
 # Database Connection
-include "../config/database.php";
+include "../../config/database.php";
+
+$verb = strtolower($_SERVER['REQUEST_METHOD']);
+if($verb == 'get') 
+{
+    
+} 
+else {
+    http_response_code("403");
+    echo '{}';
+}
+
 # Read one product buy id of product in database
 
 # Sending back to client

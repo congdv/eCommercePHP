@@ -13,9 +13,7 @@ include "../../config/database.php";
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get') {
-    $temp =array();
-   $temp = getProducts();   
-   
+   $allProucts = getProducts();   
 } 
 else {
     http_response_code("403");
@@ -34,20 +32,19 @@ function getProducts()
     while($data = $sql->fetch(PDO::FETCH_ASSOC))
     {
         array_push($dataArray,$data);
-        //$dataArray += $data;
     }
     return $dataArray;
 }
 
 # Sending back to client
-if(!isset($temp)) 
+if(!isset($allProucts)) 
     {
         echo "{}";
     }
     else
     {
         $resp = new stdclass();
-        $resp->products = $temp;
+        $resp->products = $allProucts;
         echo(json_encode($resp));
     }
 ?>
