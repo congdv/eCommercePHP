@@ -8,12 +8,28 @@ header('Content-Type: application/json');
 
 # ecommerce database connection
 include "../../config/database.php";  
-define('TABLE', 'user');
+include('../../root.php');
+include(HELPER_PATH."/utilsHelper.php");
+include(HELPER_PATH."/authenticationHelper.php");
 
-#users can not change ID and Username 
+define('TABLE', 'user');
 define('COLUMNS', 'Email,Password,Firstname,Lastname,ShippingAddress');
 
-#  Checking Authentication of User first
+# Require Authentication first
+$token = getTokenFromAuthorizationHeader();
+$user = getAuthenticationUser($token);
+
+// Not found user from token
+if(!$user) {
+    http_response_code("401");
+    $error = new stdClass();
+    $error->error = "Forbidden Request";
+    $error->message = "Request has invalid authentication credentials";
+    echo json_encode($error);
+    return;
+}
+
+#cheking request method
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'post') {
   updateUser();

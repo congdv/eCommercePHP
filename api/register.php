@@ -10,7 +10,7 @@ header('Content-Type: application/json');
 include "../config/database.php";
 
 # Constants
-include "../helpers/constants.php"
+include "../helpers/constants.php";
 
 define('TABLE', 'user');
 define('COLUMNS', 'Id, Email');

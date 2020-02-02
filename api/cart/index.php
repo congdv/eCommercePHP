@@ -9,7 +9,6 @@ header('Content-Type: application/json');
 
 # Root Path
 include('../../root.php');
-
 include(HELPER_PATH."/utilsHelper.php");
 include(HELPER_PATH."/authenticationHelper.php");
 
