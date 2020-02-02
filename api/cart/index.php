@@ -9,20 +9,42 @@ header('Content-Type: application/json');
 #ecommerce database connection
 include "../../confid/database.php";
 
+# Root Path
+include('../../root.php');
+
+include(HELPER_PATH."/utilsHelper.php");
+include(HELPER_PATH."/authenticationHelper.php");
+
 define('CART', 'cart');
 define('COLUMNS', 'CartID','UserID');
 
 define('CART_DETAILS', 'cart_details');
 define('COLUMNS', 'CartDetailsID','ProductID', 'Quantities', 'CartID');
 
-# Require Authication first
+
+
+# Require Authentication first
+$token = getTokenFromAuthorizationHeader();
+$user = getAuthenticationUser($token);
+
+// Not found user from token
+if(!$user) {
+    http_response_code("401");
+    $error = new stdClass();
+    $error->error = "Forbidden Request";
+    $error->message = "Request has invalid authentication credentials";
+    echo json_encode($error);
+    return;
+}
+
+# Get all products from cart
 $verb = strtolower($_SERVER['REQUEST_METHOD]']);
 if($verb == 'post'){
     userCart();
 }else{
     http_response_code("403");
     echo '{}';
-}
+
 
 # Read all purchased that the user bought it
 function userCart(){
@@ -61,5 +83,5 @@ function getUserCart($user){
 }
 
 # Sending back to client
-echo "{}"
+echo "{}";
 ?>
