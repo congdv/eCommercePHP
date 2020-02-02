@@ -6,10 +6,14 @@ header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
+
+
+# Constants
+include "../helpers/constants.php";
+
 define('TABLE', 'user');
 
-# Secret key for JWT
-define('SCERET_KEY','eyJ0eXAiOi');
+
 
 # Database Connection
 include "../config/database.php";
@@ -37,7 +41,7 @@ function login()
     if(isValidPassword($user, $data)) {
         http_response_code(200);
         $resp = new stdClass();
-        $resp->token = JWT::encode($user['ID'],SCERET_KEY);
+        $resp->token = JWT::encode($user['ID'],SECRET_KEY);
         $resp->firstName = $user['FirstName'];
         $resp->lastName = $user['LastName'];
         $resp->username = $user['Username'];
