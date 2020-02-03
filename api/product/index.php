@@ -43,8 +43,18 @@ if(!isset($allProucts))
     }
     else
     {
+        foreach($allProucts as $arr)
+        {
+        $data =  array(
+            'ID' => $arr['ID'],
+            'description' => $arr['Description'],
+            'image' => $arr['Image'],
+            'pricing' => $arr['Pricing'],
+            'shippingCost' => $arr['ShippingCost']);
+        }
+
         $resp = new stdclass();
-        $resp->products = $allProucts;
+        $resp->products = $data;
         echo(json_encode($resp));
     }
 ?>

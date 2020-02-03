@@ -14,6 +14,7 @@ include "../../config/database.php";
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get') 
 {
+    $productData = array();
     $productData = getProduct();
 } 
 else {
@@ -24,18 +25,20 @@ else {
 # Read one product buy id of product in database
 function getProduct()
 {
-    # data from client
-    $data = json_decode(trim(file_get_contents("php://input")), true);
+    
+    //$data = json_decode(trim(file_get_contents("php://input")), true);
 
-    if(!isset($data) || !isset($data['ID'])) 
+    if(!isset( $_GET['id'])) 
     {
         return NULL;
     }
     else
     {
+        # get product id from user
+        $productID =  $_GET['id'];
         $database = new Database();
         $dbConn = $database->getConnection();
-        $cmd = 'SELECT * FROM '.TABLE.' WHERE ID = '.$data['ID'];
+        $cmd = 'SELECT * FROM '.TABLE.' WHERE ID = '.$productID;
         $sql = $dbConn->prepare($cmd);
         $sql->execute();
         $product = $sql->fetch(PDO::FETCH_ASSOC);
@@ -50,9 +53,20 @@ if(!isset($productData))
     }
     else
     {
+        #reorganising json
+        $data =  array(
+            'ID' => $productData['ID'],
+            'description' => $productData['Description'],
+            'image' => $productData['Image'],
+            'pricing' => $productData['Pricing'],
+            'shippingCost' => $productData['ShippingCost']);
+
         $resp = new stdclass();
-        $resp->product = $productData;
+        $resp->product = $data;
         echo(json_encode($resp));
+        
+
+
     }
 
 ?>
