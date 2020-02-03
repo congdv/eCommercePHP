@@ -13,7 +13,18 @@ include "../../config/database.php";
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get') {
-   $allProucts = getProducts();   
+    try 
+    {
+        $allProucts = getProducts();   
+    }
+    catch(Exception $e)
+    {
+        http_response_code(401);
+        $resp = new stdClass();
+        $resp->error = "No Data";
+        $resp->message = "No products in Database";
+        echo json_encode($resp);
+    }
 } 
 else {
     http_response_code("403");

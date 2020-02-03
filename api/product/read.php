@@ -14,8 +14,19 @@ include "../../config/database.php";
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get') 
 {
-    $productData = array();
-    $productData = getProduct();
+    try
+    {
+        $productData = array();
+        $productData = getProduct();
+    }
+    catch(Exception $e)
+    {
+        http_response_code(401);
+        $resp = new stdClass();
+        $resp->error = "No Data";
+        $resp->message = "No product select.";
+        echo json_encode($resp);
+    }
 } 
 else {
     http_response_code("403");
@@ -25,9 +36,6 @@ else {
 # Read one product buy id of product in database
 function getProduct()
 {
-    
-    //$data = json_decode(trim(file_get_contents("php://input")), true);
-
     if(!isset( $_GET['id'])) 
     {
         return NULL;
@@ -42,31 +50,26 @@ function getProduct()
         $sql = $dbConn->prepare($cmd);
         $sql->execute();
         $product = $sql->fetch(PDO::FETCH_ASSOC);
-        return $product;
-    }
-}
-
-# Sending back to client
-if(!isset($productData)) 
-    {
-        echo "{}";
-    }
-    else
-    {
         #reorganising json
-        $data =  array(
+        $product =  array(
             'ID' => $productData['ID'],
             'description' => $productData['Description'],
             'image' => $productData['Image'],
             'pricing' => $productData['Pricing'],
             'shippingCost' => $productData['ShippingCost']);
-
-        $resp = new stdclass();
-        $resp->product = $data;
-        echo(json_encode($resp));
-        
-
-
+        return $product;
     }
+}
 
+# Sending back to client
+if(!isset($productData))
+    {
+        echo "{}";
+    }
+    else
+    {
+        $resp = new stdclass();
+        $resp->product = $productData;
+        echo(json_encode($resp));
+    }
 ?>
