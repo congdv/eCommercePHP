@@ -31,6 +31,12 @@ function getProducts()
     $dataArray = array();
     while($data = $sql->fetch(PDO::FETCH_ASSOC))
     {
+        $data =  array(
+            'ID' => $data['ID'],
+            'description' => $data['Description'],
+            'image' => $data['Image'],
+            'pricing' => $data['Pricing'],
+            'shippingCost' => $data['ShippingCost']);
         array_push($dataArray,$data);
     }
     return $dataArray;
@@ -43,18 +49,8 @@ if(!isset($allProucts))
     }
     else
     {
-        foreach($allProucts as $arr)
-        {
-        $data =  array(
-            'ID' => $arr['ID'],
-            'description' => $arr['Description'],
-            'image' => $arr['Image'],
-            'pricing' => $arr['Pricing'],
-            'shippingCost' => $arr['ShippingCost']);
-        }
-
         $resp = new stdclass();
-        $resp->products = $data;
+        $resp->products = $allProucts;
         echo(json_encode($resp));
     }
 ?>
