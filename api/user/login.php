@@ -6,20 +6,16 @@ header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
-
+# Root Path
+include('../../root.php');
+include(CONFIG_PATH.'/database.php');
+include(LIB_PATH.'/JWT.php');
+include(HELPER_PATH.'/constants.php');
 
 # Constants
-include "../helpers/constants.php";
 
 define('TABLE', 'user');
 
-
-
-# Database Connection
-include "../config/database.php";
-
-#Json Web Token Library
-include "../lib/JWT.php";
 
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
