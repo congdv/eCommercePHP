@@ -9,7 +9,7 @@ header('Content-Type: application/json');
 define('TABLE', 'product');
 
 # Database Connection
-include "../../config/database.php";
+include ("../../config/database.php");
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get') 
@@ -18,7 +18,11 @@ if($verb == 'get')
     {
         $productData = array();
         $productData = getProduct();
-        sendDataToClient($productData);
+
+        if(!empty($productData))
+        {
+            sendDataToClient($productData);
+        }
     }
     catch(Exception $e)
     {
@@ -39,8 +43,12 @@ function getProduct()
 {
     if(!isset( $_GET['id'])) 
     {
-        return NULL;
-    }
+        http_response_code(401);
+        $resp = new stdClass();
+        $resp->error = "No Data";
+        $resp->message = "No product select.";
+        echo json_encode($resp);
+}
     else
     {
         # get product id from user
@@ -52,7 +60,7 @@ function getProduct()
         $sql->execute();
         $product = $sql->fetch(PDO::FETCH_ASSOC);
 
-        if(!isset($product))
+        if(empty($product))
         {
             http_response_code(401);
             $resp = new stdClass();
@@ -76,22 +84,10 @@ function getProduct()
 }
 
 # Sending back to client
-/*if(!isset($productData))
-    {
-        echo "{}";
-    }
-    else
-    {
-        $resp = new stdclass();
-        $resp->product = $productData;
-        echo(json_encode($resp));
-    }*/
-
     function sendDataToClient($productData)
     {
         $resp = new stdclass();
         $resp->product = $productData;
         echo(json_encode($resp));
-    
     }
 ?>

@@ -9,13 +9,15 @@ header('Content-Type: application/json');
 define('TABLE', 'product');
 
 # Database Connection
-include "../../config/database.php";
+include( "../../config/database.php");
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get') {
     try 
     {
         $allProucts = getProducts();   
+        sendDataToClient($allProucts);
+
     }
     catch(Exception $e)
     {
@@ -54,14 +56,12 @@ function getProducts()
 }
 
 # Sending back to client
-if(!isset($allProucts)) 
-    {
-        echo "{}";
-    }
-    else
-    {
-        $resp = new stdclass();
-        $resp->products = $allProucts;
-        echo(json_encode($resp));
-    }
+function sendDataToClient($allProucts)
+{
+    $resp = new stdclass();
+    $resp->product = $allProucts;
+    echo(json_encode($resp));
+
+}
+
 ?>
