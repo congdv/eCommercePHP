@@ -6,7 +6,6 @@ header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
-<<<<<<< HEAD
 define('TABLE', 'product');
 
 # Database Connection
@@ -30,7 +29,7 @@ if($verb == 'get')
         http_response_code(401);
         $resp = new stdClass();
         $resp->error = "No Data";
-        $resp->message = "No product select.";
+        $resp->message = "No product to select.";
         echo json_encode($resp);
     }
 } 
@@ -47,7 +46,7 @@ function getProduct()
         http_response_code(401);
         $resp = new stdClass();
         $resp->error = "No Data";
-        $resp->message = "No product select.";
+        $resp->message = "No product to select.";
         echo json_encode($resp);
 }
     else
@@ -66,7 +65,7 @@ function getProduct()
             http_response_code(401);
             $resp = new stdClass();
             $resp->error = "No Data";
-            $resp->message = "No product select.";
+            $resp->message = "No product to select.";
             echo json_encode($resp);
         }
 
@@ -91,10 +90,4 @@ function getProduct()
         $resp->product = $productData;
         echo(json_encode($resp));
     }
-=======
-# Read one product buy id of product in database
-
-# Sending back to client
-echo "{}"
->>>>>>> 703307fd776851d7f05d2b018c94187e2a1aa458
 ?>

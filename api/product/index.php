@@ -6,8 +6,8 @@ header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
-<<<<<<< HEAD
 define('TABLE', 'product');
+
 
 # Database Connection
 include( "../../config/database.php");
@@ -17,15 +17,19 @@ if($verb == 'get') {
     try 
     {
         $allProucts = getProducts();   
-        sendDataToClient($allProucts);
 
+        
+        if(!empty($allProucts))
+        {
+            sendDataToClient($allProucts);
+        }
     }
     catch(Exception $e)
     {
         http_response_code(401);
         $resp = new stdClass();
         $resp->error = "No Data";
-        $resp->message = "No products in Database";
+        $resp->message = "No products found in Database";
         echo json_encode($resp);
     }
 } 
@@ -34,22 +38,34 @@ else {
     echo '{}';
 }
 
-=======
->>>>>>> 703307fd776851d7f05d2b018c94187e2a1aa458
 # Read all products in database
+function getProducts()
+{
+    $database = new Database();
+    $dbConn = $database->getConnection();
+    $cmd = 'SELECT * FROM '.TABLE;
+    $sql = $dbConn->prepare($cmd);
+    $sql->execute();
+    $dataArray = array();
+    while($data = $sql->fetch(PDO::FETCH_ASSOC))
+    {
+        $data =  array(
+            'ID' => $data['ID'],
+            'description' => $data['Description'],
+            'image' => $data['Image'],
+            'pricing' => $data['Pricing'],
+            'shippingCost' => $data['ShippingCost']);
+        array_push($dataArray,$data);
+    }
+    return $dataArray;
+}
 
 # Sending back to client
-<<<<<<< HEAD
 function sendDataToClient($allProucts)
 {
     $resp = new stdclass();
     $resp->product = $allProucts;
     echo(json_encode($resp));
-
 }
 
 ?>
-=======
-echo "{}"
-?>
->>>>>>> 703307fd776851d7f05d2b018c94187e2a1aa458
