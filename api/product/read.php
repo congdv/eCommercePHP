@@ -18,6 +18,7 @@ if($verb == 'get')
     {
         $productData = array();
         $productData = getProduct();
+        sendDataToClient($productData);
     }
     catch(Exception $e)
     {
@@ -50,19 +51,32 @@ function getProduct()
         $sql = $dbConn->prepare($cmd);
         $sql->execute();
         $product = $sql->fetch(PDO::FETCH_ASSOC);
+
+        if(!isset($product))
+        {
+            http_response_code(401);
+            $resp = new stdClass();
+            $resp->error = "No Data";
+            $resp->message = "No product select.";
+            echo json_encode($resp);
+        }
+
+        else
+        {
         #reorganising json
-        $product =  array(
-            'ID' => $productData['ID'],
-            'description' => $productData['Description'],
-            'image' => $productData['Image'],
-            'pricing' => $productData['Pricing'],
-            'shippingCost' => $productData['ShippingCost']);
-        return $product;
+            $product =  array(
+                'ID' => $product['ID'],
+                'description' => $product['Description'],
+                'image' => $product['Image'],
+                'pricing' => $product['Pricing'],
+                'shippingCost' => $product['ShippingCost']);
+            return $product;
+        }
     }
 }
 
 # Sending back to client
-if(!isset($productData))
+/*if(!isset($productData))
     {
         echo "{}";
     }
@@ -71,5 +85,13 @@ if(!isset($productData))
         $resp = new stdclass();
         $resp->product = $productData;
         echo(json_encode($resp));
+    }*/
+
+    function sendDataToClient($productData)
+    {
+        $resp = new stdclass();
+        $resp->product = $productData;
+        echo(json_encode($resp));
+    
     }
 ?>
