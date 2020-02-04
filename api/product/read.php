@@ -6,6 +6,7 @@ header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
+<<<<<<< HEAD
 define('TABLE', 'product');
 
 # Database Connection
@@ -90,4 +91,10 @@ function getProduct()
         $resp->product = $productData;
         echo(json_encode($resp));
     }
+=======
+# Read one product buy id of product in database
+
+# Sending back to client
+echo "{}"
+>>>>>>> 703307fd776851d7f05d2b018c94187e2a1aa458
 ?>

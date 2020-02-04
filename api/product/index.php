@@ -6,6 +6,7 @@ header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
+<<<<<<< HEAD
 define('TABLE', 'product');
 
 # Database Connection
@@ -33,29 +34,12 @@ else {
     echo '{}';
 }
 
+=======
+>>>>>>> 703307fd776851d7f05d2b018c94187e2a1aa458
 # Read all products in database
-function getProducts()
-{
-    $database = new Database();
-    $dbConn = $database->getConnection();
-    $cmd = 'SELECT * FROM '.TABLE;
-    $sql = $dbConn->prepare($cmd);
-    $sql->execute();
-    $dataArray = array();
-    while($data = $sql->fetch(PDO::FETCH_ASSOC))
-    {
-        $data =  array(
-            'ID' => $data['ID'],
-            'description' => $data['Description'],
-            'image' => $data['Image'],
-            'pricing' => $data['Pricing'],
-            'shippingCost' => $data['ShippingCost']);
-        array_push($dataArray,$data);
-    }
-    return $dataArray;
-}
 
 # Sending back to client
+<<<<<<< HEAD
 function sendDataToClient($allProucts)
 {
     $resp = new stdclass();
@@ -65,3 +49,7 @@ function sendDataToClient($allProucts)
 }
 
 ?>
+=======
+echo "{}"
+?>
+>>>>>>> 703307fd776851d7f05d2b018c94187e2a1aa458
