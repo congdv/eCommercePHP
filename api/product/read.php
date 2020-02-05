@@ -11,6 +11,8 @@ define('TABLE', 'product');
 # Database Connection
 include ("../../config/database.php");
 
+
+
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get') 
 {
@@ -29,13 +31,16 @@ if($verb == 'get')
         http_response_code(401);
         $resp = new stdClass();
         $resp->error = "No Data";
-        $resp->message = "No product select.";
+        $resp->message = "No product to select.";
         echo json_encode($resp);
     }
 } 
 else {
-    http_response_code("403");
-    echo '{}';
+    http_response_code(401);
+        $resp = new stdClass();
+        $resp->error = "No Data";
+        $resp->message = "No product to select.";
+        echo json_encode($resp);
 }
 
 # Read one product buy id of product in database
@@ -46,7 +51,7 @@ function getProduct()
         http_response_code(401);
         $resp = new stdClass();
         $resp->error = "No Data";
-        $resp->message = "No product select.";
+        $resp->message = "No product to select.";
         echo json_encode($resp);
 }
     else
