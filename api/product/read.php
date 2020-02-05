@@ -29,7 +29,7 @@ if($verb == 'get')
         http_response_code(401);
         $resp = new stdClass();
         $resp->error = "No Data";
-        $resp->message = "No product to select.";
+        $resp->message = "No product select.";
         echo json_encode($resp);
     }
 } 
@@ -46,7 +46,7 @@ function getProduct()
         http_response_code(401);
         $resp = new stdClass();
         $resp->error = "No Data";
-        $resp->message = "No product to select.";
+        $resp->message = "No product select.";
         echo json_encode($resp);
 }
     else
@@ -65,7 +65,7 @@ function getProduct()
             http_response_code(401);
             $resp = new stdClass();
             $resp->error = "No Data";
-            $resp->message = "No product to select.";
+            $resp->message = "No product select.";
             echo json_encode($resp);
         }
 
