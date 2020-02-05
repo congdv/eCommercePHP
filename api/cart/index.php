@@ -69,7 +69,7 @@ function userCart($user){
         
         //return a single row
         $cartID = $sql->fetch(PDO::FETCH_ASSOC);
-
+        
         if($cartID != null){
             //get product details for cartID assigned to a user
             $cmdjoin = 'SELECT * FROM '.CART.' INNER JOIN '.CART_DETAILS.' ON '.CART.'.CartID = '. CART_DETAILS.'.CartID 
