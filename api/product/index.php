@@ -8,7 +8,6 @@ header('Content-Type: application/json');
 
 define('TABLE', 'product');
 
-
 # Database Connection
 include( "../../config/database.php");
 
@@ -18,7 +17,6 @@ if($verb == 'get') {
     {
         $allProucts = getProducts();   
 
-        
         if(!empty($allProucts))
         {
             sendDataToClient($allProucts);
@@ -29,7 +27,7 @@ if($verb == 'get') {
         http_response_code(401);
         $resp = new stdClass();
         $resp->error = "No Data";
-        $resp->message = "No products found in Database";
+        $resp->message = "No products in Database";
         echo json_encode($resp);
     }
 } 
