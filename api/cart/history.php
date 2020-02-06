@@ -75,9 +75,10 @@ function userProducts($user){
             $sql = $dbConn->prepare($getProductsCmd);
             $sql->execute();
             
-            $dataArray =array();
+            $dataArray = array();
             while($data = $sql->fetch(PDO::FETCH_ASSOC))
             {
+                //return everything from product table as well
             $data =  array(
                 'cartDetailsID' => $data['CartDetailsID'],
                 'cartID' => $data['CartID'],
