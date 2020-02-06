@@ -1,4 +1,4 @@
-<?php 
+<?php
 // Allow Get Request only
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: access");
@@ -6,17 +6,14 @@ header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
-#ecommerce database connection
-// include "../../config/database.php";
-
 # Root Path
 include('../../root.php');
 
-include(HELPER_PATH."/utilsHelper.php");
-include(HELPER_PATH."/authenticationHelper.php");
-
 define('CART', 'cart');
 define('CART_DETAILS', 'cart_details');
+
+include(HELPER_PATH."/utilsHelper.php");
+include(HELPER_PATH."/authenticationHelper.php");
 
 # Require Authentication first
 $token = getTokenFromAuthorizationHeader();
@@ -32,15 +29,15 @@ if(!$user) {
     return;
 }
 
-# Get all products from cart
+# Get product history from cart(with cartStatus = 1)
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get'){
     try
     {
-        $cartProducts = userCart($user); 
+        $purchasedProducts = userProducts($user); 
 
         # Sending back to client
-        echo (json_encode ($cartProducts));
+        echo (json_encode ($purchasedProducts));
     }
     catch(Exception $e)
     {
@@ -56,27 +53,28 @@ if($verb == 'get'){
     echo '{}';
 }
 
-# Read all current Cart items of the User
-function userCart($user){
+//Read all the items User purchased
+function userProducts($user){
     try{
         $database = new Database();
         $dbConn = $database->getConnection();
     
-        //get current cartID for user (CartStatus is zero for current cart)
-        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = '.$user['ID']. ' AND '.CART.'.CartStatus ='. 0;
+        //get cartID for user with CartStatus is one
+        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = '.$user['ID']. ' AND '.CART.'.CartStatus ='. 1;
         $sql = $dbConn->prepare($cmd);
         $sql->execute();
-        
+
         //return a single row
         $cartID = $sql->fetch(PDO::FETCH_ASSOC);
-        
-        if($cartID != null){
-            //get product details for cartID assigned to a user
-            $cmdjoin = 'SELECT * FROM '.CART.' INNER JOIN '.CART_DETAILS.' ON '.CART.'.CartID = '. CART_DETAILS.'.CartID 
+        echo ($cartID['CartID']);
+        //get products in the CartID fetched
+        if($cartID['CartID']){
+            // $getProductsCmd = 'SELECT * FROM '.CART_DETAILS.'';
+            $getProductsCmd = 'SELECT * FROM '.CART.' INNER JOIN '.CART_DETAILS.' ON '.CART.'.CartID = '. CART_DETAILS.'.CartID 
                 WHERE '.CART.'.CartID = '. $cartID['CartID'];
-            $sql = $dbConn->prepare($cmdjoin);
+            $sql = $dbConn->prepare($getProductsCmd);
             $sql->execute();
-
+            
             $dataArray =array();
             while($data = $sql->fetch(PDO::FETCH_ASSOC))
             {
@@ -88,9 +86,11 @@ function userCart($user){
                 array_push($dataArray,$data);
             }
             return $dataArray;
+
         }else{
             return null;
-        }
+        }       
+        
     }
     catch(Exception $e){
         http_response_code(400);
@@ -100,6 +100,7 @@ function userCart($user){
         echo json_encode($error);
         return;
     }
+
 }
 
 ?>
