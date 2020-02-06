@@ -40,7 +40,9 @@ if($verb == 'get'){
         $cartProducts = userCart($user); 
 
         # Sending back to client
-        echo (json_encode ($cartProducts));
+        if(!empty($cartProducts)){
+            sendResponseToClient($cartProducts);
+        }
     }
     catch(Exception $e)
     {
@@ -56,7 +58,7 @@ if($verb == 'get'){
     echo '{}';
 }
 
-# Read all purchased that the user bought it
+# Read all current Cart items of the User
 function userCart($user){
     try{
         $database = new Database();
@@ -100,6 +102,12 @@ function userCart($user){
         echo json_encode($error);
         return;
     }
+}
+
+function sendResponseToClient($cartProducts){
+    $resp = new stdclass();
+    $resp->cartProduct = $cartProducts;
+    echo(json_encode($resp));
 }
 
 ?>
