@@ -11,6 +11,7 @@ include('../../root.php');
 
 define('CART', 'cart');
 define('CART_DETAILS', 'cart_details');
+define('PRODUCT', 'product');
 
 include(HELPER_PATH."/utilsHelper.php");
 include(HELPER_PATH."/authenticationHelper.php");
@@ -70,10 +71,19 @@ function userProducts($user){
         //get products in the CartID fetched
         if($cartID['CartID']){
             // $getProductsCmd = 'SELECT * FROM '.CART_DETAILS.'';
-            $getProductsCmd = 'SELECT * FROM '.CART.' INNER JOIN '.CART_DETAILS.' ON '.CART.'.CartID = '. CART_DETAILS.'.CartID 
-                WHERE '.CART.'.CartID = '. $cartID['CartID'];
+            // $getProductsCmd = 'SELECT * FROM '.CART.' INNER JOIN '.CART_DETAILS.' ON '.CART.'.CartID = '. CART_DETAILS.'.CartID 
+            //     WHERE '.CART.'.CartID = '. $cartID['CartID'];
+            $getProductsCmd = 'SELECT * FROM'.CART.' 
+                INNER JOIN '.CART_DETAILS.'
+                ON '.CART.'.CartID = '.CART_DETAILS.'.CartID                
+                INNER JOIN '.PRODUCT.'
+                ON '.CART_DETAILS.'ProductID = '.PRODUCT.'ID
+                WHERE '.CART.'.CartID = '.$cartID['CartID'];
+
             $sql = $dbConn->prepare($getProductsCmd);
             $sql->execute();
+
+            print_r($dataArray);
             
             $dataArray = array();
             while($data = $sql->fetch(PDO::FETCH_ASSOC))
@@ -83,7 +93,9 @@ function userProducts($user){
                 'cartDetailsID' => $data['CartDetailsID'],
                 'cartID' => $data['CartID'],
                 'productID' => $data['ProductID'],
-                'quantities' => $data['Quantities']);
+                'quantities' => $data['Quantities'],
+                'description' => $data['Description']
+            );
                 array_push($dataArray,$data);
             }
             return $dataArray;
