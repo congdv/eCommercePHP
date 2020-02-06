@@ -56,7 +56,7 @@ if($verb == 'get'){
     echo '{}';
 }
 
-# Read all purchased that the user bought it
+# Read all current Cart items of the User
 function userCart($user){
     try{
         $database = new Database();
