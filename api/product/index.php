@@ -15,6 +15,7 @@ include("../../root.php");
 include( CONFIG_PATH."/database.php");
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
+
 if($verb == 'get') {
     try 
     {
@@ -23,6 +24,12 @@ if($verb == 'get') {
         if(!empty($allProucts))
         {
             sendDataToClient($allProucts);
+        }else {
+            http_response_code(401);
+            $resp = new stdClass();
+            $resp->error = "Invalid";
+            $resp->message = "Oops! No products!";
+            echo json_encode($resp);
         }
     }
     catch(Exception $e)
@@ -36,7 +43,10 @@ if($verb == 'get') {
 } 
 else {
     http_response_code("403");
-    echo '{}';
+    $resp = new stdClass();
+    $resp->error = "Invalid";
+    $resp->message = "Unknown Endpoint";
+    echo json_encode($resp);
 }
 
 # Read all products in database

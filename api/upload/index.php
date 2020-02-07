@@ -10,15 +10,13 @@ header('Content-Type: application/json');
 include("../../root.php");
 
 # authentication functions
-include(HELPER_PATH."/utilsHelper.php");
 include(HELPER_PATH."/authenticationHelper.php");
 
 # assets path
 define("ASSETS_PATH",'/assets');
 
 # Require Authentication first
-$token = getTokenFromAuthorizationHeader();
-$user = getAuthenticationUser($token);
+$user = getAuthenticationUser();
 
 // Not found user from token
 if(!$user) {

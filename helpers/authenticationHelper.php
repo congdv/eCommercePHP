@@ -10,10 +10,14 @@ include_once(LIB_PATH.'/JWT.php');
 # Database
 include_once(CONFIG_PATH.'/database.php');
 
+# Utils Helper
+include_once(HELPER_PATH.'./utilsHelper.php');
+
 define('TABLE', 'user');
 
 # Get the user by token
-function getAuthenticationUser($token) {
+function getAuthenticationUser() {
+    $token = getTokenFromAuthorizationHeader();
     if($token == NULL) {
         return NULL;
     }

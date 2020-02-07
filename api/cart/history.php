@@ -13,12 +13,10 @@ define('CART', 'cart');
 define('CART_DETAILS', 'cart_details');
 define('PRODUCT', 'product');
 
-include(HELPER_PATH."/utilsHelper.php");
 include(HELPER_PATH."/authenticationHelper.php");
 
 # Require Authentication first
-$token = getTokenFromAuthorizationHeader();
-$user = getAuthenticationUser($token);
+$user = getAuthenticationUser();
 
 // Not found user from token
 if(!$user) {

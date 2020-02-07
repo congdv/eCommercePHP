@@ -9,15 +9,13 @@ header('Content-Type: application/json');
 # Root Path
 include('../../root.php');
 
-include(HELPER_PATH."/utilsHelper.php");
 include(HELPER_PATH."/authenticationHelper.php");
 
 define('CART', 'cart');
 define('CART_DETAILS', 'cart_details');
 
 # Require Authentication first
-$token = getTokenFromAuthorizationHeader();
-$user = getAuthenticationUser($token);
+$user = getAuthenticationUser();
 
 // Not found user from token
 if(!$user) {
@@ -42,7 +40,7 @@ if($verb == 'post'){
                 addProductToDB($data, $cartID);
             }
             else{
-                throw new Exception("Invalid User Data");
+                throw new Exception("Invalid Cart Data");
             }
         }
         http_response_code(200);
