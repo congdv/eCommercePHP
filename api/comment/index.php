@@ -16,8 +16,6 @@ include(HELPER_PATH."/authenticationHelper.php");
 define('COMMENT_TABLE', 'comment');
 define('IMAGE_TABLE','comment_image');
 
-#define('COLUMNS', 'CommentID,UserID,ProductID,Comment,Rating');
-
 # Require Authentication first
 $token = getTokenFromAuthorizationHeader();
 $user = getAuthenticationUser($token);
@@ -51,17 +49,20 @@ function getCommentsFromDB($data)
         $database = new Database();
         $dbConn = $database->getConnection();
 
-        $cmd = 'SELECT * FROM '.COMMENT_TABLE.' AS C INNER JOIN '.IMAGE_TABLE.' AS CI ON C.CommentID = CI.CommentID WHERE C.ProductID ='.$data['ProductID'];
+        $cmd = 'SELECT * FROM '.COMMENT_TABLE.' AS C 
+        INNER JOIN '.IMAGE_TABLE.' AS CI 
+        ON C.CommentID = CI.CommentID 
+        WHERE C.ProductID ='.$data['productID'];
 
         #$cmd = 'SELECT * FROM '.COMMENT_TABLE.' WHERE ProductID='.$data['ProductID'];
-
+        
         $sql = $dbConn->prepare($cmd);
         $sql->execute();
         $temp=$sql->fetch(PDO::FETCH_ASSOC);  
-        print_r($temp);
+        #print_r($temp);
         http_response_code(200);
         $resp = new stdClass(); 
-        $resp->message = "data retrived from db";
+        $resp->message = $temp;
         echo json_encode($resp);
     }
     catch(Exception $e){
@@ -74,6 +75,5 @@ function getCommentsFromDB($data)
     }
 }
 # Add comment to a product
-
-echo "\n {end of code}";
+echo '{}';
 ?>
