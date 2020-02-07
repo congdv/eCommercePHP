@@ -13,8 +13,6 @@ include_once(CONFIG_PATH.'/database.php');
 # Utils Helper
 include_once(HELPER_PATH.'./utilsHelper.php');
 
-define('TABLE', 'user');
-
 # Get the user by token
 function getAuthenticationUser() {
     $token = getTokenFromAuthorizationHeader();
@@ -39,7 +37,7 @@ function getUserByID($userID)
     $database = new Database();
     $dbConn = $database->getConnection();
 
-    $cmd = 'SELECT * FROM '.TABLE.' WHERE ID =:id';
+    $cmd = 'SELECT * FROM user WHERE ID =:id';
     $sql = $dbConn->prepare($cmd);
     $sql->bindValue(':id',$userID);
     $sql->execute();
