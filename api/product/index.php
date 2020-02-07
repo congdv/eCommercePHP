@@ -18,12 +18,10 @@ include( CONFIG_PATH."/database.php");
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 
 if($verb == 'get') {
-    try 
-    {
+    try  {
         $allProucts = getProducts();   
 
-        if(!empty($allProucts))
-        {
+        if(!empty($allProucts)) {
             sendDataToClient($allProucts);
         }else {
             http_response_code(401);
@@ -33,8 +31,7 @@ if($verb == 'get') {
             echo json_encode($resp);
         }
     }
-    catch(Exception $e)
-    {
+    catch(Exception $e) {
         http_response_code(401);
         $resp = new stdClass();
         $resp->error = "No Data";
@@ -51,16 +48,14 @@ else {
 }
 
 # Read all products in database
-function getProducts()
-{
+function getProducts() {
     $database = new Database();
     $dbConn = $database->getConnection();
     $cmd = 'SELECT * FROM '.TABLE;
     $sql = $dbConn->prepare($cmd);
     $sql->execute();
     $dataArray = array();
-    while($data = $sql->fetch(PDO::FETCH_ASSOC))
-    {
+    while($data = $sql->fetch(PDO::FETCH_ASSOC)) {
         $data =  array(
             'id' => $data['ID'],
             'name' => $data['Name'],
@@ -74,8 +69,7 @@ function getProducts()
 }
 
 # Sending back to client
-function sendDataToClient($allProucts)
-{
+function sendDataToClient($allProucts) {
     $resp = new stdclass();
     $resp->product = $allProucts;
     echo(json_encode($resp));
