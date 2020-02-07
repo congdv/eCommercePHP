@@ -16,22 +16,18 @@ include("../../root.php");
 include (CONFIG_PATH."/database.php");
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
-if($verb == 'get') 
-{
-    try
-    {
+if($verb == 'get') {
+    try {
         $productData = array();
         $productData = getProduct();
 
-        if(!empty($productData))
-        {
+        if(!empty($productData)) {
             sendDataToClient($productData);
         } else {
             throw new Exception("Invalid id of product!");
         }
     }
-    catch(Exception $e)
-    {
+    catch(Exception $e) {
         http_response_code(401);
         $resp = new stdClass();
 
@@ -49,8 +45,7 @@ else {
 }
 
 # Read one product buy id of product in database
-function getProduct()
-{
+function getProduct() {
     # Check id is valid
     if(!isset($_GET['id'])) {
         throw new Exception("Invalid id of product");
@@ -67,16 +62,15 @@ function getProduct()
     $sql->execute();
     $product = $sql->fetch(PDO::FETCH_ASSOC);
 
-    if(empty($product))
-    {
+    if(empty($product)) {
        throw new Exception("Not found product!!");
     }
 
-    else
-    {
+    else {
     #reorganising json
         $product =  array(
             'id' => $product['ID'],
+            'name' => $product['Name'],
             'description' => $product['Description'],
             'image' => $product['Image'],
             'pricing' => $product['Pricing'],
@@ -86,8 +80,7 @@ function getProduct()
 }
 
 # Sending back to client
-    function sendDataToClient($productData)
-    {
+    function sendDataToClient($productData) {
         $resp = new stdclass();
         $resp->product = $productData;
         echo(json_encode($resp));
