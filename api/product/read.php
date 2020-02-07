@@ -8,11 +8,12 @@ header('Content-Type: application/json');
 
 define('TABLE', 'product');
 
-# Database Connection
+# Root path
 include("../../root.php");
-include(CONFIG_PATH."/database.php");
 
+# Database Connection
 
+include (CONFIG_PATH."/database.php");
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get') 
@@ -25,14 +26,17 @@ if($verb == 'get')
         if(!empty($productData))
         {
             sendDataToClient($productData);
+        } else {
+            throw new Exception("Invalid id of product!");
         }
     }
     catch(Exception $e)
     {
         http_response_code(401);
         $resp = new stdClass();
-        $resp->error = "No Data";
-        $resp->message = "No product to select.";
+
+        $resp->error = "Invalid Data";
+        $resp->message = $e->getMessage();
         echo json_encode($resp);
     }
 } 
@@ -47,45 +51,37 @@ else {
 # Read one product buy id of product in database
 function getProduct()
 {
-    if(!isset( $_GET['id'])) 
+    # Check id is valid
+    if(!isset($_GET['id'])) {
+        throw new Exception("Invalid id of product");
+    }
+    
+    # get product id from user
+    $productID =  $_GET['id'];
+    $database = new Database();
+    $dbConn = $database->getConnection();
+    $cmd = 'SELECT * FROM '.TABLE.' WHERE ID = :id';
+
+    $sql = $dbConn->prepare($cmd);
+    $sql->bindValue(':id', $productID);
+    $sql->execute();
+    $product = $sql->fetch(PDO::FETCH_ASSOC);
+
+    if(empty($product))
     {
-        http_response_code(401);
-        $resp = new stdClass();
-        $resp->error = "No Data";
-        $resp->message = "No product to select.";
-        echo json_encode($resp);
-}
+       throw new Exception("Not found product!!");
+    }
+
     else
     {
-        # get product id from user
-        $productID =  $_GET['id'];
-        $database = new Database();
-        $dbConn = $database->getConnection();
-        $cmd = 'SELECT * FROM '.TABLE.' WHERE ID = '.$productID;
-        $sql = $dbConn->prepare($cmd);
-        $sql->execute();
-        $product = $sql->fetch(PDO::FETCH_ASSOC);
-
-        if(empty($product))
-        {
-            http_response_code(401);
-            $resp = new stdClass();
-            $resp->error = "No Data";
-            $resp->message = "No product select.";
-            echo json_encode($resp);
-        }
-
-        else
-        {
-        #reorganising json
-            $product =  array(
-                'ID' => $product['ID'],
-                'description' => $product['Description'],
-                'image' => $product['Image'],
-                'pricing' => $product['Pricing'],
-                'shippingCost' => $product['ShippingCost']);
-            return $product;
-        }
+    #reorganising json
+        $product =  array(
+            'id' => $product['ID'],
+            'description' => $product['Description'],
+            'image' => $product['Image'],
+            'pricing' => $product['Pricing'],
+            'shippingCost' => $product['ShippingCost']);
+        return $product;
     }
 }
 

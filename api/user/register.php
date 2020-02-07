@@ -6,12 +6,14 @@ header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
-# Database Connection
-include "../config/database.php";
+# Root Path
+include('../../root.php');
+include(CONFIG_PATH.'/database.php');
+include(LIB_PATH.'/JWT.php');
+include(HELPER_PATH.'/constants.php');
+
 
 # Constants
-include "../helpers/constants.php"
-
 define('TABLE', 'user');
 define('COLUMNS', 'Id, Email');
 
@@ -31,7 +33,13 @@ function registerNewUser()
     try {
         $data = json_decode(trim(file_get_contents("php://input")), true);
         if(isValidInsertNewUser($data)) {
-            insertUserToDB($data);
+            if(isNotExistedUser($data)) {
+                insertUserToDB($data);
+
+            } else {
+                throw new Exception("Username is existed!!");
+            }
+
         } else {
             throw new Exception("Invalid User Data");
         }
@@ -58,6 +66,20 @@ function isValidInsertNewUser($user)
     isset($user['username']) &&
     filter_var($user['email'], FILTER_VALIDATE_EMAIL) &&
     strlen($user['password']) > 6;
+}
+
+function isNotExistedUser($data)
+{
+    $database = new Database();
+    $dbConn = $database->getConnection();
+
+    $cmd = 'SELECT * FROM '.TABLE.' WHERE Username =:username';
+    $sql = $dbConn->prepare($cmd);
+    $sql->bindValue(':username',$data['username']);
+    $sql->execute();
+    $user = $sql->fetch(PDO::FETCH_ASSOC);
+    $result =  empty($user) ? "true": "false";
+    return empty($user);
 }
 
 # Insert user to database

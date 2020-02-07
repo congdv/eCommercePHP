@@ -8,13 +8,15 @@ header('Content-Type: application/json');
 
 define('TABLE', 'product');
 
+# root path
+include("../../root.php");
+
 # Database Connection
 
-include("../../root.php");
-include(CONFIG_PATH."/database.php");
-
+include( CONFIG_PATH."/database.php");
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
+
 if($verb == 'get') {
     try 
     {
@@ -23,6 +25,12 @@ if($verb == 'get') {
         if(!empty($allProucts))
         {
             sendDataToClient($allProucts);
+        }else {
+            http_response_code(401);
+            $resp = new stdClass();
+            $resp->error = "Invalid";
+            $resp->message = "Oops! No products!";
+            echo json_encode($resp);
         }
     }
     catch(Exception $e)
@@ -35,10 +43,10 @@ if($verb == 'get') {
     }
 } 
 else {
-    http_response_code(401);
+    http_response_code("403");
     $resp = new stdClass();
-    $resp->error = "No Data";
-    $resp->message = "No product to select.";
+    $resp->error = "Invalid";
+    $resp->message = "Unknown Endpoint";
     echo json_encode($resp);
 }
 
@@ -54,7 +62,7 @@ function getProducts()
     while($data = $sql->fetch(PDO::FETCH_ASSOC))
     {
         $data =  array(
-            'ID' => $data['ID'],
+            'id' => $data['ID'],
             'description' => $data['Description'],
             'image' => $data['Image'],
             'pricing' => $data['Pricing'],

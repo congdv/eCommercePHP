@@ -10,10 +10,12 @@ include_once(LIB_PATH.'/JWT.php');
 # Database
 include_once(CONFIG_PATH.'/database.php');
 
-define('TABLE', 'user');
+# Utils Helper
+include_once(HELPER_PATH.'./utilsHelper.php');
 
 # Get the user by token
-function getAuthenticationUser($token) {
+function getAuthenticationUser() {
+    $token = getTokenFromAuthorizationHeader();
     if($token == NULL) {
         return NULL;
     }
@@ -35,7 +37,7 @@ function getUserByID($userID)
     $database = new Database();
     $dbConn = $database->getConnection();
 
-    $cmd = 'SELECT * FROM '.TABLE.' WHERE ID =:id';
+    $cmd = 'SELECT * FROM user WHERE ID =:id';
     $sql = $dbConn->prepare($cmd);
     $sql->bindValue(':id',$userID);
     $sql->execute();
