@@ -63,6 +63,7 @@ function getProducts()
     {
         $data =  array(
             'id' => $data['ID'],
+            'name' => $data['Name'],
             'description' => $data['Description'],
             'image' => $data['Image'],
             'pricing' => $data['Pricing'],
