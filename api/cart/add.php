@@ -1,5 +1,5 @@
 <?php 
-// Allow Get Request only
+// Allow POST Request only
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: access");
 header("Access-Control-Allow-Methods: POST");
