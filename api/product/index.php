@@ -8,8 +8,11 @@ header('Content-Type: application/json');
 
 define('TABLE', 'product');
 
+# root path
+include("../../root.php");
+
 # Database Connection
-include( "../../config/database.php");
+include( CONFIG_PATH."/database.php");
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get') {
