@@ -62,5 +62,11 @@ if($verb == "post") {
         http_response_code(401);
         echo json_encode($resp);
     }
+} else {
+    http_response_code("403");
+    $resp = new stdClass();
+    $resp->error = "Invalid";
+    $resp->message = "Unknown Endpoint";
+    echo json_encode($resp);
 }
 ?>

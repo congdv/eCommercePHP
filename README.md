@@ -1,7 +1,7 @@
 # Shopping Website
 
 ## Description
-1. A page that displaysthe 5or moreproducts(images and descriptions)that may be purchased in various quantities.This, and/or an optionalproduct details page, should allow the user to select a quantity for purchase.
+1. A page that displays the 5 or more products(images and descriptions) that may be purchased in various quantities.This, and/or an optionalproduct details page, should allow the user to select a quantity for purchase.
 
 2. A shopping cart page that shows the selected itemsand quantitiesof each user. This page should optionally allow the user to change quantities or remove items from the cart.This page should also allow the user to finalize their purchase.
 

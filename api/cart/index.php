@@ -16,6 +16,7 @@ include(HELPER_PATH."/authenticationHelper.php");
 
 define('CART', 'cart');
 define('CART_DETAILS', 'cart_details');
+define('PRODUCT','Product');
 
 # Require Authentication first
 $user = getAuthenticationUser();
@@ -51,14 +52,17 @@ if($verb == 'get'){
     {
         http_response_code(401);
         $resp = new stdClass();
-        $resp->error = "No Data";
-        $resp->message = "No product select.";
+        $resp->error = "Invalid Data";
+        $resp->message = "No product in Cart.";
         echo json_encode($resp);
     }
         
 }else{
     http_response_code("403");
-    echo '{}';
+    $resp = new stdClass();
+    $resp->error = "Invalid";
+    $resp->message = "Unknown Endpoint";
+    echo json_encode($resp);
 }
 
 # Read all current Cart items of the User
@@ -77,19 +81,23 @@ function userCart($user){
         
         if($cartID != null){
             //get product details for cartID assigned to a user
-            $cmdjoin = 'SELECT * FROM '.CART.' INNER JOIN '.CART_DETAILS.' ON '.CART.'.CartID = '. CART_DETAILS.'.CartID 
-                WHERE '.CART.'.CartID = '. $cartID['CartID'];
+            $cmdjoin = 'SELECT * FROM '.CART_DETAILS.
+                        ' INNER JOIN '.PRODUCT.' ON '.CART_DETAILS.'.ProductID = '.PRODUCT.'.ID'.
+                        ' WHERE '.CART_DETAILS.'.CartID = '. $cartID['CartID'];
             $sql = $dbConn->prepare($cmdjoin);
             $sql->execute();
 
-            $dataArray =array();
+            $dataArray = array();
             while($data = $sql->fetch(PDO::FETCH_ASSOC))
             {
-            $data =  array(
-                'cartDetailsID' => $data['CartDetailsID'],
-                'cartID' => $data['CartID'],
-                'productID' => $data['ProductID'],
-                'quantities' => $data['Quantities']);
+                $data =  array(
+                    'productID' => $data['ProductID'],
+                    'name' => $data['Name'],
+                    'image' => $data['Image'],
+                    'price' => $data['Pricing'],
+                    'shippingCost' => $data['ShippingCost'],
+                    'quantities' => $data['Quantities'],
+                    'subTotal' => (string)($data['Pricing'] * $data['Quantities'] + $data['ShippingCost']));
                 array_push($dataArray,$data);
             }
             return $dataArray;
@@ -109,7 +117,7 @@ function userCart($user){
 
 function sendResponseToClient($cartProducts){
     $resp = new stdclass();
-    $resp->cartProduct = $cartProducts;
+    $resp->products = $cartProducts;
     echo(json_encode($resp));
 }
 
