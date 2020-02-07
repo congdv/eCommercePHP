@@ -9,7 +9,9 @@ header('Content-Type: application/json');
 define('TABLE', 'product');
 
 # Database Connection
-include( "../../config/database.php");
+
+include("../../root.php");
+include(CONFIG_PATH."/database.php");
 
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
