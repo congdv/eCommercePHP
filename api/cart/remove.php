@@ -28,6 +28,7 @@ if(!$user) {
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'post') {
+    
 
 }
 else{
