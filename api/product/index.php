@@ -61,7 +61,7 @@ function getProducts()
     while($data = $sql->fetch(PDO::FETCH_ASSOC))
     {
         $data =  array(
-            'ID' => $data['ID'],
+            'id' => $data['ID'],
             'description' => $data['Description'],
             'image' => $data['Image'],
             'pricing' => $data['Pricing'],
