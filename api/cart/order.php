@@ -28,6 +28,7 @@ if(!$user) {
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb = 'post'){
+    
     try{
         $data = json_decode(trim(file_get_contents("php://input")), true);
         if(isValidData($data)){
@@ -54,7 +55,7 @@ if($verb = 'post'){
 
 function isValidData($data){
     return isset($data['shippingAddress']) &&
-  //  isset($data['purchasedDate']) &&
+    isset($data['purchasedDate']) &&
     isset($data['paymentMethod']);
 }
 
@@ -63,14 +64,17 @@ function updateCartStatusOfUser($data, $user){
     $database = new Database();
     $dbConn = $database->getConnection();
     $updateCmd = 'UPDATE ' . CART . ' SET ' .CART.'.CartStatus = :purchased, ' 
-                .CART.'.ShipppingAdress = :shippingAddress, '
-                .CART.'.PaymentMethod = :paymentMethod
-                WHERE '.CART. '.UserID = :userID';
+                .CART.'.ShippingAddress = :shippingAddress, '
+                .CART.'.PaymentMethod = :paymentMethod, '
+                .CART.'.PurchasedDate = :purchasedDate 
+                WHERE '.CART. '.UserID = :userID AND '.CART.'.CartStatus = :currentStatus';
     $sql = $dbConn->prepare($updateCmd);
     $sql->bindValue(':userID',$user['ID']);
+    $sql->bindValue(':currentStatus', 0);
     $sql->bindValue(':purchased', 1);
     $sql->bindValue(':shippingAddress',$data['shippingAddress']);
     $sql->bindValue(':paymentMethod',$data['paymentMethod']);
+    $sql->bindValue(':purchasedDate',$data['purchasedDate']);
     $sql->execute();
 }
 
