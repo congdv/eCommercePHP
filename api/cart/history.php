@@ -52,7 +52,6 @@ if($verb == 'get'){
 //Read all the items User purchased
 function userProducts($user){
     try{
-        //print_r($user);
         $database = new Database();
         $dbConn = $database->getConnection();
     
@@ -65,7 +64,6 @@ function userProducts($user){
 
         //return a single row
         $cartID = $sql->fetch(PDO::FETCH_ASSOC);
-        echo ($cartID['CartID']);
         //get products in the CartID fetched
         if($cartID['CartID']){
             $getProductsCmd = 'SELECT * FROM '.CART.' 

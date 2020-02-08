@@ -11,6 +11,8 @@ include('../../root.php');
 
 include(HELPER_PATH."/authenticationHelper.php");
 
+define('CART', 'cart');
+
 # Require Authentication first
 $user = getAuthenticationUser();
 
@@ -27,7 +29,13 @@ if(!$user) {
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb = 'post'){
     try{
-        
+        $data = json_decode(trim(file_get_contents("php://input")), true);
+        if(isValidData($data)){
+            updateCartStatusOfUser($data, $user);
+
+        }else{
+            throw new Exception("Invalid Data");
+        }
     }catch(Exception $e){
         http_response_code(400);
         $error = new stdClass();
@@ -36,9 +44,34 @@ if($verb = 'post'){
         echo json_encode($error);
         return;
     }
-
+    http_response_code(200);
+    $resp = new stdClass();
+    $resp->message = "Success";
+    echo json_encode($resp);
 }else{
     throw new Exception("Invalid Cart Data");
+}
+
+function isValidData($data){
+    return isset($data['shippingAddress']) &&
+  //  isset($data['purchasedDate']) &&
+    isset($data['paymentMethod']);
+}
+
+function updateCartStatusOfUser($data, $user){
+    //Create connection through Database class
+    $database = new Database();
+    $dbConn = $database->getConnection();
+    $updateCmd = 'UPDATE ' . CART . ' SET ' .CART.'.CartStatus = :purchased, ' 
+                .CART.'.ShipppingAdress = :shippingAddress, '
+                .CART.'.PaymentMethod = :paymentMethod
+                WHERE '.CART. '.UserID = :userID';
+    $sql = $dbConn->prepare($updateCmd);
+    $sql->bindValue(':userID',$user['ID']);
+    $sql->bindValue(':purchased', 1);
+    $sql->bindValue(':shippingAddress',$data['shippingAddress']);
+    $sql->bindValue(':paymentMethod',$data['paymentMethod']);
+    $sql->execute();
 }
 
 ?>
