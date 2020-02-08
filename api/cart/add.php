@@ -66,8 +66,9 @@ function addProductToCart($user){
         $dbConn = $database->getConnection();
         
         //get current cartID for user (CartStatus is zero for current cart)
-        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = '.$user['ID']. ' AND '.CART.'.CartStatus ='. 0;
+        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = '.$user['ID']. ' AND '.CART.'.CartStatus = :cartStatus';
         $sql = $dbConn->prepare($cmd);
+        $sql->bindValue(':cartStatus', 0);
         $sql->execute();
         
         //return a single row
@@ -78,8 +79,10 @@ function addProductToCart($user){
         }
         else{
             //if doesn't exist create new cart ID for the user
-            $insertCmd = 'INSERT INTO '.CART.' (CartID, UserID, CartStatus) VALUES ( null,'.$user['ID'].' , '. 0 .');';
+            $insertCmd = 'INSERT INTO '.CART.' (CartID, UserID, CartStatus) VALUES ( null, :id , :cartStatus);';
             $sql = $dbConn->prepare($insertCmd);
+            $sql->bindValue(':id',$user['ID']);
+            $sql->bindValue(':cartStatus', 0);
             $sql->execute();
 
             //store the created CartID in a variable

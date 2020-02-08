@@ -57,8 +57,10 @@ function userProducts($user){
         $dbConn = $database->getConnection();
     
         //get cartID for user with CartStatus is one
-        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = '.$user['ID']. ' AND '.CART.'.CartStatus ='. 1;
+        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = :id AND '.CART.'.CartStatus = :cartStatus';
         $sql = $dbConn->prepare($cmd);
+        $sql->bindValue(':id',$user['ID']);
+        $sql->bindValue(':cartStatus', 1);
         $sql->execute();
 
         //return a single row
@@ -90,6 +92,7 @@ function userProducts($user){
                 array_push($dataArray,$data);
             }
 
+            //sending response to client
             $res = new stdClass();
             $res->cartID = $cartID['CartID'];
             $res->products = $dataArray;

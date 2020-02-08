@@ -35,16 +35,11 @@ $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get'){
     try
     {
+        //get items that are already in the cart
         $cartProducts = userCart($user); 
         # Sending back to client
         if(!empty($cartProducts)){
             sendResponseToClient($cartProducts);
-        } else {
-            //If the cart is empty
-            http_response_code(200);
-            $resp = new stdClass();
-            $resp->products = array();
-            echo json_encode($resp);
         }
     }
     catch(Exception $e)
@@ -71,8 +66,10 @@ function userCart($user){
         $dbConn = $database->getConnection();
     
         //get current cartID for user (CartStatus is zero for current cart)
-        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = '.$user['ID']. ' AND '.CART.'.CartStatus ='. 0;
+        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = :id AND '.CART.'.CartStatus = :cartStatus';
         $sql = $dbConn->prepare($cmd);
+        $sql->bindValue(':id',$user['ID']);
+        $sql->bindValue(':cartStatus', 0);
         $sql->execute();
         
         //return a single row
@@ -82,8 +79,9 @@ function userCart($user){
             //get product details for cartID assigned to a user
             $cmdjoin = 'SELECT * FROM '.CART_DETAILS.
                         ' INNER JOIN '.PRODUCT.' ON '.CART_DETAILS.'.ProductID = '.PRODUCT.'.ID'.
-                        ' WHERE '.CART_DETAILS.'.CartID = '. $cartID['CartID'];
+                        ' WHERE '.CART_DETAILS.'.CartID = :id';
             $sql = $dbConn->prepare($cmdjoin);
+            $sql->bindValue(':id',$user['ID']);
             $sql->execute();
 
             $dataArray = array();
