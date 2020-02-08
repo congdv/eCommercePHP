@@ -47,14 +47,12 @@ if($verb == 'get'){
         echo json_encode($resp);
     }
         
-}else{
-    http_response_code("403");
-    echo '{}';
 }
 
 //Read all the items User purchased
 function userProducts($user){
     try{
+        //print_r($user);
         $database = new Database();
         $dbConn = $database->getConnection();
     
@@ -68,35 +66,34 @@ function userProducts($user){
         echo ($cartID['CartID']);
         //get products in the CartID fetched
         if($cartID['CartID']){
-            // $getProductsCmd = 'SELECT * FROM '.CART_DETAILS.'';
-            // $getProductsCmd = 'SELECT * FROM '.CART.' INNER JOIN '.CART_DETAILS.' ON '.CART.'.CartID = '. CART_DETAILS.'.CartID 
-            //     WHERE '.CART.'.CartID = '. $cartID['CartID'];
-            $getProductsCmd = 'SELECT * FROM'.CART.' 
+            $getProductsCmd = 'SELECT * FROM '.CART.' 
                 INNER JOIN '.CART_DETAILS.'
                 ON '.CART.'.CartID = '.CART_DETAILS.'.CartID                
                 INNER JOIN '.PRODUCT.'
-                ON '.CART_DETAILS.'ProductID = '.PRODUCT.'ID
-                WHERE '.CART.'.CartID = '.$cartID['CartID'];
-
+                ON '.CART_DETAILS.'.ProductID = '.PRODUCT.'.ID
+                WHERE '.CART.'.CartID = :cartID';
+            
             $sql = $dbConn->prepare($getProductsCmd);
+            $sql->bindValue(':cartID', $cartID['CartID']);
             $sql->execute();
 
-            print_r($dataArray);
-            
             $dataArray = array();
             while($data = $sql->fetch(PDO::FETCH_ASSOC))
             {
                 //return everything from product table as well
-            $data =  array(
-                'cartDetailsID' => $data['CartDetailsID'],
-                'cartID' => $data['CartID'],
-                'productID' => $data['ProductID'],
-                'quantities' => $data['Quantities'],
-                'description' => $data['Description']
-            );
+                $data =  array(
+                    'cartDetailsID' => $data['CartDetailsID'],
+                    'productID' => $data['ProductID'],
+                    'quantities' => $data['Quantities'],
+                    'description' => $data['Description']
+                );
                 array_push($dataArray,$data);
             }
-            return $dataArray;
+
+            $res = new stdClass();
+            $res->cartID = $cartID['CartID'];
+            $res->products = $dataArray;
+            return $res;
 
         }else{
             return null;
