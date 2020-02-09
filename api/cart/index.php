@@ -6,12 +6,11 @@ header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
-#ecommerce database connection
-// include "../../config/database.php";
 
 # Root Path
 include('../../root.php');
 include(HELPER_PATH."/authenticationHelper.php");
+include(HELPER_PATH."/responseHelper.php");
 
 define('CART', 'cart');
 define('CART_DETAILS', 'cart_details');
@@ -22,11 +21,7 @@ $user = getAuthenticationUser();
 
 // Not found user from token
 if(!$user) {
-    http_response_code("401");
-    $error = new stdClass();
-    $error->error = "Forbidden Request";
-    $error->message = "Request has invalid authentication credentials";
-    echo json_encode($error);
+    invalidAuthenticationResponse();
     return;
 }
 
@@ -35,16 +30,11 @@ $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get'){
     try
     {
+        //get items that are already in the cart
         $cartProducts = userCart($user); 
         # Sending back to client
         if(!empty($cartProducts)){
             sendResponseToClient($cartProducts);
-        } else {
-            //If the cart is empty
-            http_response_code(200);
-            $resp = new stdClass();
-            $resp->products = array();
-            echo json_encode($resp);
         }
     }
     catch(Exception $e)
@@ -57,11 +47,7 @@ if($verb == 'get'){
     }
         
 }else{
-    http_response_code("403");
-    $resp = new stdClass();
-    $resp->error = "Invalid";
-    $resp->message = "Unknown Endpoint";
-    echo json_encode($resp);
+    unknownEndpointsResponse();
 }
 
 # Read all current Cart items of the User
@@ -71,8 +57,10 @@ function userCart($user){
         $dbConn = $database->getConnection();
     
         //get current cartID for user (CartStatus is zero for current cart)
-        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = '.$user['ID']. ' AND '.CART.'.CartStatus ='. 0;
+        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = :id AND '.CART.'.CartStatus = :cartStatus';
         $sql = $dbConn->prepare($cmd);
+        $sql->bindValue(':id',$user['ID']);
+        $sql->bindValue(':cartStatus', 0);
         $sql->execute();
         
         //return a single row
@@ -82,8 +70,9 @@ function userCart($user){
             //get product details for cartID assigned to a user
             $cmdjoin = 'SELECT * FROM '.CART_DETAILS.
                         ' INNER JOIN '.PRODUCT.' ON '.CART_DETAILS.'.ProductID = '.PRODUCT.'.ID'.
-                        ' WHERE '.CART_DETAILS.'.CartID = '. $cartID['CartID'];
+                        ' WHERE '.CART_DETAILS.'.CartID = :id';
             $sql = $dbConn->prepare($cmdjoin);
+            $sql->bindValue(':id',$user['ID']);
             $sql->execute();
 
             $dataArray = array();
@@ -99,7 +88,12 @@ function userCart($user){
                     'subTotal' => (string)($data['Pricing'] * $data['Quantities'] + $data['ShippingCost']));
                 array_push($dataArray,$data);
             }
-            return $dataArray;
+            // Format data for returning
+            $cart = new stdClass();
+            $cart->cartID = $cartID['CartID'];
+            $cart->products = $dataArray;
+
+            return $cart;
         }else{
             return null;
         }
@@ -116,7 +110,8 @@ function userCart($user){
 
 function sendResponseToClient($cartProducts){
     $resp = new stdclass();
-    $resp->products = $cartProducts;
+    $resp->cartID = $cartProducts->cartID;
+    $resp->products = $cartProducts->products;
     echo(json_encode($resp));
 }
 

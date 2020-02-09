@@ -1,4 +1,7 @@
-<?php 
+<?php
+/*
+    Change password of user
+*/
 # Allow POST Request only
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: access");
@@ -10,6 +13,7 @@ header('Content-Type: application/json');
 include('../../root.php');
 include(HELPER_PATH."/utilsHelper.php");
 include(HELPER_PATH."/authenticationHelper.php");
+include(HELPER_PATH."/responseHelper.php");
 
 define('TABLE', 'user');
 
@@ -30,7 +34,7 @@ if(!$user) {
 #cheking request method
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'post') {
-  updateUser($user);
+    updateUser($user);
 } else {
     http_response_code("403");
     echo '{}';
@@ -40,19 +44,19 @@ if($verb == 'post') {
 function updateUser($user){
     try{
         $data = json_decode(trim(file_get_contents("php://input")), true);
-        if(isValidUserData($data)) {
-            if(isValidPassword($user, $data)) {
-                updateUserToDatabase($user, $data);
-
+        if(isValidUserUpdate($data)) {
+            if(isValidPassword($user, $data)) 
+            {
+                updatePassword($user,$data);
             } else {
-                throw new Exception("Wrong password!!");
+                throw new Exception("Wrong password!");
             }
         } else {
             throw new Exception("Invalid User Data");
         }
         http_response_code(200);
         $resp = new stdClass();
-        $resp->message = "Successfully register";
+        $resp->message = "Successfully Change your password";
         echo json_encode($resp);
     }catch(Exception $e)
     {
@@ -66,20 +70,17 @@ function updateUser($user){
 }
 
 # Validation code update request
-function isValidUserData($data)
+function isValidUserUpdate($user)
 {
-    return isset($data['email']) &&
-    isset($data['firstName']) &&
-    isset($data['lastName']) &&
-    isset($data['shippingAddress']) &&
-    filter_var($data['email'], FILTER_VALIDATE_EMAIL) &&
-    strlen($data['shippingAddress']) > 6;
+    return isset($user['oldPassword']) &&
+    isset($user['newPassword']) &&
+    strlen($user['newPassword']) > 6;
 }
 
 #verify the password match
 function isValidPassword($user,$data) {
-    if(isset($user) && isset($data['password'])) {
-        if(password_verify($data['password'],$user['Password'])) {
+    if(isset($user) && isset($data['oldPassword'])) {
+        if(password_verify($data['oldPassword'],$user['Password'])) {
             return true;
         }
         return false;
@@ -88,20 +89,18 @@ function isValidPassword($user,$data) {
     return false;
 }
 
+
 # update user to database
 # userID is provided by token for comparing ID in Update Query;
-function updateUserToDatabase($user, $data)
+function updatePassword($user,$data)
 {
     $database = new Database();
     $dbConn = $database->getConnection();
     $cmd = 'UPDATE ' . TABLE . 
-           ' SET Email = :email, FirstName = :firstName, LastName = :lastName , ShippingAddress = :shippingAddress' .
+           ' SET Password = :password' .
            ' WHERE ID = :id' ;
     $sql = $dbConn->prepare($cmd);
-    $sql->bindValue(':email', $data['email']);
-    $sql->bindValue(':firstName', $data['firstName']);
-    $sql->bindValue(':lastName', $data['lastName']);
-    $sql->bindValue(':shippingAddress', $data['shippingAddress']);
+    $sql->bindValue(':password', password_hash($data['newPassword'], PASSWORD_BCRYPT));
     $sql->bindValue(':id', $user['ID']);
     $sql->execute();
    
