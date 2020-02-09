@@ -6,8 +6,6 @@ header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
-#ecommerce database connection
-// include "../../config/database.php";
 
 # Root Path
 include('../../root.php');
@@ -100,7 +98,12 @@ function userCart($user){
                     'subTotal' => (string)($data['Pricing'] * $data['Quantities'] + $data['ShippingCost']));
                 array_push($dataArray,$data);
             }
-            return $dataArray;
+            // Format data for returning
+            $cart = new stdClass();
+            $cart->cartID = $cartID['CartID'];
+            $cart->products = $dataArray;
+
+            return $cart;
         }else{
             return null;
         }
@@ -117,7 +120,8 @@ function userCart($user){
 
 function sendResponseToClient($cartProducts){
     $resp = new stdclass();
-    $resp->products = $cartProducts;
+    $resp->cartID = $cartProducts->cartID;
+    $resp->products = $cartProducts->products;
     echo(json_encode($resp));
 }
 

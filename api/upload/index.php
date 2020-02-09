@@ -38,17 +38,21 @@ if($verb == "post") {
         mkdir($targetDir,077,true);
     }
 
-    $targetFilePath = $targetDir."/". basename($_FILES["img"]["name"]);
-    # Check file path is exists
-    if(file_exists($targetFilePath)) {
-        $pathFileType = strtolower(pathinfo($targetFilePath,PATHINFO_EXTENSION));
-        $targetFilePath = $targetDir."/".uniqid("i").".".$pathFileType;
+    try {
+        $targetFilePath = $targetDir."/". basename($_FILES["img"]["name"]);
+        # Check file path is exists
+        if(file_exists(ROOT_PATH.$targetFilePath)) {
+            $pathFileType = strtolower(pathinfo($targetFilePath,PATHINFO_EXTENSION));
+            $targetFilePath = $targetDir."/".uniqid("i").".".$pathFileType;
+        }
+        $success  = false;
+        if(move_uploaded_file($_FILES["img"]["tmp_name"],ROOT_PATH."".$targetFilePath)) {
+            $success = true;
+        }
+    } catch(Exception $e) {
+        $success = false;
     }
-    $success  = false;
-    if(move_uploaded_file($_FILES["img"]["tmp_name"],ROOT_PATH."".$targetFilePath)) {
-        $success = true;
-    }
-
+    
     if($success) {
         $resp = new stdClass();
         $resp->success = $success;
