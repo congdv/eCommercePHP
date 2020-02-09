@@ -34,7 +34,6 @@ $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'post') {
     $data = json_decode(trim(file_get_contents("php://input")), true);
     #print_r ($data);
-    #function name
     if(verifyPurchase($data)) {
 		$comment_id = addComment($data);
 		if($comment_id) {
@@ -42,21 +41,22 @@ if($verb == 'post') {
 			http_response_code(200);
 			$result['success'] = true;
 			$result['message'] = "Comment added successfully";
-			echo json_encode($resp);
+			echo json_encode($result);
 		} else {
 			http_response_code(200);
 			$result['success'] = false;
 			$result['message'] = "Something went wrong!!";
-			echo json_encode($resp);
+			echo json_encode($result);
 		}
 	}
     else{
-        http_response_code(400);
+        /*http_response_code(400);
         $error = new stdClass();
         $error->error = "user is not authorised to write a comment";
         $error->message = $e->getMessage();
         echo json_encode($error);
-        return;
+        return;*/
+        echo "User is not authorised to add a comment {}";
     }
 } 
 else {
@@ -64,6 +64,7 @@ else {
     echo '{}';
 }
 
+#verify user returns true if user exists with product.
 function verifyPurchase($data)
 {
     try{
@@ -78,7 +79,8 @@ function verifyPurchase($data)
         $sql->bindValue(':userID',$data['userID']);
         $sql->execute();
         $result = $sql->fetch(PDO::FETCH_ASSOC);
-		//echo "<pre>"; print_r($result); die();
+        #print_r($result); 
+        #die();
         if($result){
             return true;
         }else{
@@ -89,12 +91,60 @@ function verifyPurchase($data)
     {
         http_response_code(400);
         $error = new stdClass();
-        $error->error = "Failed to load comments about product";
+        $error->error = "Failed to verify purchase";
         $error->message = $e->getMessage();
         echo json_encode($error);
         return;
     }
 }
+
+# comment function 
+function addComment($data)
+{
+    $database = new Database();
+    $dbConn = $database->getConnection();
+    $cmd = 'INSERT INTO ' . COMMENT_TABLE . ' (UserID,ProductID,Comment,Rating) ' . 
+    ' VALUES (:userID, :productID, :comment, :rating) ';
+    $sql = $dbConn->prepare($cmd);
+    $sql->bindValue(':userID', $data['userID']);
+    $sql->bindValue(':productID', $data['productID']);
+    $sql->bindValue(':comment', $data['comment']);
+    $sql->bindValue(':rating', $data['rating']);
+    $sql->execute();
+    #lastInsertID is inbuild functions of PHP which returns last inserted row.
+	return $dbConn->lastInsertId();
+}
+# add images to comment function
+function addNewImages($data,$comment_id)
+{
+    $database = new Database();
+    $dbConn = $database->getConnection();
+	if($data['images']) {
+		foreach($data['images'] as $image) {
+			$cmd = 'INSERT INTO ' . IMAGE_TABLE . ' (commentID,Path) ' . 
+			' VALUES (:commentID, :path) ';
+			$sql = $dbConn->prepare($cmd);
+			$sql->bindValue(':commentID', $comment_id);
+			$sql->bindValue(':path', $image);
+			$sql->execute();
+		}
+	}
+}
+# DO NOT REMOVE THESE FUNCTIONS.
+# fetch commentId from comment-table
+/* function fetchCommentID($data)
+{
+    $database = new Database();
+    $dbConn = $database->getConnection();
+    $cmd = 'SELECT CommentID FROM '. COMMENT_TABLE .
+           ' WHERE UserID = :userID AND ProductID = :productID';
+    $sql = $dbConn->prepare($cmd);
+    $sql->bindValue(':userID',$data['userID']);
+    $sql->bindValue(':productID',$data['productID']);
+    $sql->execute();
+    $result = $sql->fetch(PDO::FETCH_ASSOC);
+    return $result;
+} */
 
 # fetch comment data of product id
 /*function verifyData($data)
@@ -148,49 +198,4 @@ function verifyPurchase($data)
         return;
     }
 }*/
-# comment function 
-function addComment($data)
-{
-    $database = new Database();
-    $dbConn = $database->getConnection();
-    $cmd = 'INSERT INTO ' . COMMENT_TABLE . ' (UserID,ProductID,Comment,Rating) ' . 
-    ' VALUES (:userID, :productID, :comment, :rating) ';
-    $sql = $dbConn->prepare($cmd);
-    $sql->bindValue(':userID', $data['userID']);
-    $sql->bindValue(':productID', $data['productID']);
-    $sql->bindValue(':comment', $data['comment']);
-    $sql->bindValue(':rating', $data['rating']);
-    $sql->execute();
-	return $dbConn->lastInsertId();
-}
-# add images to comment function
-function addNewImages($data,$comment_id)
-{
-    $database = new Database();
-    $dbConn = $database->getConnection();
-	if($data['images']) {
-		foreach($data['images'] as $image) {
-			$cmd = 'INSERT INTO ' . IMAGE_TABLE . ' (commentID,Path) ' . 
-			' VALUES (:commentID, :path) ';
-			$sql = $dbConn->prepare($cmd);
-			$sql->bindValue(':commentID', $comment_id);
-			$sql->bindValue(':path', $image);
-			$sql->execute();
-		}
-	}
-}
-# fetch commentId from comment-table
-function fetchCommentID($data)
-{
-    $database = new Database();
-    $dbConn = $database->getConnection();
-    $cmd = 'SELECT CommentID FROM '. COMMENT_TABLE .
-           ' WHERE UserID = :userID AND ProductID = :productID';
-    $sql = $dbConn->prepare($cmd);
-    $sql->bindValue(':userID',$data['userID']);
-    $sql->bindValue(':productID',$data['productID']);
-    $sql->execute();
-    $result = $sql->fetch(PDO::FETCH_ASSOC);
-    return $result;
-}
 ?>
