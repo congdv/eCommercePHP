@@ -47,9 +47,6 @@ if($verb == 'get'){
         echo json_encode($resp);
     }
         
-}else{
-    http_response_code("403");
-    echo '{}';
 }
 
 //Read all the items User purchased
@@ -59,44 +56,45 @@ function userProducts($user){
         $dbConn = $database->getConnection();
     
         //get cartID for user with CartStatus is one
-        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = '.$user['ID']. ' AND '.CART.'.CartStatus ='. 1;
+        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = :id AND '.CART.'.CartStatus = :cartStatus';
         $sql = $dbConn->prepare($cmd);
+        $sql->bindValue(':id',$user['ID']);
+        $sql->bindValue(':cartStatus', 1);
         $sql->execute();
 
         //return a single row
         $cartID = $sql->fetch(PDO::FETCH_ASSOC);
-        echo ($cartID['CartID']);
         //get products in the CartID fetched
         if($cartID['CartID']){
-            // $getProductsCmd = 'SELECT * FROM '.CART_DETAILS.'';
-            // $getProductsCmd = 'SELECT * FROM '.CART.' INNER JOIN '.CART_DETAILS.' ON '.CART.'.CartID = '. CART_DETAILS.'.CartID 
-            //     WHERE '.CART.'.CartID = '. $cartID['CartID'];
-            $getProductsCmd = 'SELECT * FROM'.CART.' 
+            $getProductsCmd = 'SELECT * FROM '.CART.' 
                 INNER JOIN '.CART_DETAILS.'
                 ON '.CART.'.CartID = '.CART_DETAILS.'.CartID                
                 INNER JOIN '.PRODUCT.'
-                ON '.CART_DETAILS.'ProductID = '.PRODUCT.'ID
-                WHERE '.CART.'.CartID = '.$cartID['CartID'];
-
+                ON '.CART_DETAILS.'.ProductID = '.PRODUCT.'.ID
+                WHERE '.CART.'.CartID = :cartID';
+            
             $sql = $dbConn->prepare($getProductsCmd);
+            $sql->bindValue(':cartID', $cartID['CartID']);
             $sql->execute();
 
-            print_r($dataArray);
-            
             $dataArray = array();
             while($data = $sql->fetch(PDO::FETCH_ASSOC))
             {
                 //return everything from product table as well
-            $data =  array(
-                'cartDetailsID' => $data['CartDetailsID'],
-                'cartID' => $data['CartID'],
-                'productID' => $data['ProductID'],
-                'quantities' => $data['Quantities'],
-                'description' => $data['Description']
-            );
+                $data =  array(
+                    'cartDetailsID' => $data['CartDetailsID'],
+                    'productID' => $data['ProductID'],
+                    'quantities' => $data['Quantities'],
+                    'description' => $data['Description']
+                );
                 array_push($dataArray,$data);
             }
-            return $dataArray;
+
+            //sending response to client
+            $res = new stdClass();
+            $res->cartID = $cartID['CartID'];
+            $res->products = $dataArray;
+            return $res;
 
         }else{
             return null;
