@@ -64,6 +64,8 @@ function userProducts($user){
 
         //return a single row
         $cartID = $sql->fetch(PDO::FETCH_ASSOC);
+        // print_r($cartID);
+        // print_r($user);
         //get products in the CartID fetched
         if($cartID['CartID']){
             $getProductsCmd = 'SELECT * FROM '.CART.' 

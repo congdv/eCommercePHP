@@ -10,6 +10,7 @@ header('Content-Type: application/json');
 # Root Path
 include('../../root.php');
 include(HELPER_PATH."/authenticationHelper.php");
+include(HELPER_PATH."/responseHelper.php");
 
 define('CART', 'cart');
 define('CART_DETAILS', 'cart_details');
@@ -20,11 +21,7 @@ $user = getAuthenticationUser();
 
 // Not found user from token
 if(!$user) {
-    http_response_code("401");
-    $error = new stdClass();
-    $error->error = "Forbidden Request";
-    $error->message = "Request has invalid authentication credentials";
-    echo json_encode($error);
+    invalidAuthenticationResponse();
     return;
 }
 
@@ -50,11 +47,7 @@ if($verb == 'get'){
     }
         
 }else{
-    http_response_code("403");
-    $resp = new stdClass();
-    $resp->error = "Invalid";
-    $resp->message = "Unknown Endpoint";
-    echo json_encode($resp);
+    unknownEndpointsResponse();
 }
 
 # Read all current Cart items of the User
