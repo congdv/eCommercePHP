@@ -7,13 +7,11 @@ header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
 # ecommerce database connection
-include "../../config/database.php";  
 include('../../root.php');
 include(HELPER_PATH."/utilsHelper.php");
 include(HELPER_PATH."/authenticationHelper.php");
 
 define('TABLE', 'user');
-define('COLUMNS', 'Email,Password,Firstname,Lastname,ShippingAddress');
 
 # Require Authentication first
 $token = getTokenFromAuthorizationHeader();
@@ -32,18 +30,23 @@ if(!$user) {
 #cheking request method
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'post') {
-  updateUser();
+  updateUser($user);
 } else {
     http_response_code("403");
     echo '{}';
 }
 
 # Main Update User function
-function updateUser(){
+function updateUser($user){
     try{
         $data = json_decode(trim(file_get_contents("php://input")), true);
-        if(isValidUserUpdate($data)) {
-            updateUserToDatabase($data);
+        if(isValidUserData($data)) {
+            if(isValidPassword($user, $data)) {
+                updateUserToDatabase($user, $data);
+
+            } else {
+                throw new Exception("Wrong password!!");
+            }
         } else {
             throw new Exception("Invalid User Data");
         }
@@ -63,34 +66,43 @@ function updateUser(){
 }
 
 # Validation code update request
-function isValidUserUpdate($user)
+function isValidUserData($data)
 {
-    return isset($user['email']) &&
-    isset($user['password']) &&
-    isset($user['firstName']) &&
-    isset($user['lastName']) &&
-    isset($user['shippingAddress']) &&
-    filter_var($user['email'], FILTER_VALIDATE_EMAIL) &&
-    strlen($user['password']) > 6;
-    strlen($user['shippingAddress']) > 8;
+    return isset($data['email']) &&
+    isset($data['firstName']) &&
+    isset($data['lastName']) &&
+    isset($data['shippingAddress']) &&
+    filter_var($data['email'], FILTER_VALIDATE_EMAIL) &&
+    strlen($data['shippingAddress']) > 6;
 }
 
-#update user to database
+#verify the password match
+function isValidPassword($user,$data) {
+    if(isset($user) && isset($data['password'])) {
+        if(password_verify($data['password'],$user['Password'])) {
+            return true;
+        }
+        return false;
+    }
+
+    return false;
+}
+
+# update user to database
 # userID is provided by token for comparing ID in Update Query;
-function updateUserToDatabase($user)
+function updateUserToDatabase($user, $data)
 {
     $database = new Database();
     $dbConn = $database->getConnection();
-    $cmd = 'UPDATE' . TABLE . 
-           ' SET Email = :email, Password = :password, FirstName = :firstName, LastName = :lastName , ShippingAddress = :shippingAddress' .
-           'WHERE ID = :id' ;
+    $cmd = 'UPDATE ' . TABLE . 
+           ' SET Email = :email, FirstName = :firstName, LastName = :lastName , ShippingAddress = :shippingAddress' .
+           ' WHERE ID = :id' ;
     $sql = $dbConn->prepare($cmd);
-    $sql->bindValue(':email', $user['email']);
-    $sql->bindValue(':password', password_hash($user['password'], PASSWORD_BCRYPT));
-    $sql->bindValue(':firstName', isset($user['firstName']) ? $user['firstName'] : '');
-    $sql->bindValue(':lastName', isset($user['lastName']) ? $user['lastName'] : '');
-    $sql->bindValue(':shippingAddress', $user['shippingAddress']);
-    $sql->bindValue(':id', $user['id']);
+    $sql->bindValue(':email', $data['email']);
+    $sql->bindValue(':firstName', $data['firstName']);
+    $sql->bindValue(':lastName', $data['lastName']);
+    $sql->bindValue(':shippingAddress', $data['shippingAddress']);
+    $sql->bindValue(':id', $user['ID']);
     $sql->execute();
    
 }
