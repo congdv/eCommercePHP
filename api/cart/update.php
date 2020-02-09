@@ -35,8 +35,11 @@ if($verb == 'post'){
         $currentCartID = getCurrentCartIdOfUser($user);
         if($currentCartID) {
             $data = json_decode(trim(file_get_contents("php://input")), true);
-            updateQuantitiesOfProduct($currentCartID,$data);
-            succesResponse(true,"Succesfully Change quantities of the product",NULL);
+            if(updateQuantitiesOfProduct($currentCartID,$data)) {
+                succesResponse(true,"Succesfully Change quantities of the product",NULL);
+            } else {
+                throw new Exception("Cannot change quantities of this product");
+            }
         } else {
             throw new Exception("The user doesn't have any cart");
         }
@@ -78,5 +81,6 @@ function updateQuantitiesOfProduct($cartID, $data) {
     $sql->bindValue('cartID',$cartID);
     $sql->bindValue('productID',$data['productID']);
     $sql->execute();
+    return $sql->rowCount() > 0 ? true : false;
 }
 ?>
