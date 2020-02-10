@@ -104,21 +104,20 @@ function addProductToCart($user){
 
 function isValidData($data){
     return isset($data['productID']) &&
-    isset($data['quantities']) & isset($data['currentPrice']);
+    isset($data['quantities']);
 }
 
 function addProductToDB($data, $cartID){
     $database = new Database();
     $dbConn = $database->getConnection();
     
-    $addToDbCmd = 'INSERT INTO ' . CART_DETAILS . '(CartDetailsID, ProductID, Quantities, CartID, CurrentPrice) 
-                    VALUES (:cartDetailsID, :productID, :quantities, :cartID, :currentPrice);';    
+    $addToDbCmd = 'INSERT INTO ' . CART_DETAILS . '(CartDetailsID, ProductID, Quantities, CartID) 
+                    VALUES (:cartDetailsID, :productID, :quantities, :cartID);';    
     $sql = $dbConn->prepare($addToDbCmd);
     $sql->bindValue(':cartDetailsID','null');
-    $sql->bindValue(':productID',  $data['productID']);
-    $sql->bindValue(':quantities', $data['quantities']);
+    $sql->bindValue(':productID', isset($data['productID']) ? $data['productID'] : '');
+    $sql->bindValue(':quantities', isset($data['quantities']) ? $data['quantities'] : '');
     $sql->bindValue(':cartID', isset($cartID) ? $cartID : '');
-    $sql->bindValue(':currentPrice',$data['currentPrice']);
     $sql->execute();
 }
     

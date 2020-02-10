@@ -13,7 +13,6 @@ include(HELPER_PATH."/utilsHelper.php");
 include(HELPER_PATH."/authenticationHelper.php");
 
 #define table and columns
-define('USER_TABLE','user');
 define('COMMENT_TABLE', 'comment');
 define('IMAGE_TABLE','comment_image');
 
@@ -35,8 +34,6 @@ if(!$user) {
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'post') {
     $data = json_decode(trim(file_get_contents("php://input")), true);
-    $comment = array();
-    //$comment = getComments();
     #print_r($data);
     getCommentsFromDB($data);
 } 
@@ -53,36 +50,19 @@ function getCommentsFromDB($data)
         $dbConn = $database->getConnection();
 
         $cmd = 'SELECT * FROM '.COMMENT_TABLE.' AS C 
-		INNER JOIN '.USER_TABLE.' AS UI ON C.UserID = UI.ID 
+        INNER JOIN '.IMAGE_TABLE.' AS CI 
+        ON C.CommentID = CI.CommentID 
         WHERE C.ProductID ='.$data['productID'];
+
+        #$cmd = 'SELECT * FROM '.COMMENT_TABLE.' WHERE ProductID='.$data['ProductID'];
         
         $sql = $dbConn->prepare($cmd);
         $sql->execute();
-        $final_data = array();
-		$comments_data = $sql->fetchAll(PDO::FETCH_ASSOC);
-		if($comments_data) {
-			foreach($comments_data as $i => $temp) {
-				$final_data[$i]['commentID'] = $temp['CommentID'];
-				$final_data[$i]['userName'] = $temp['Username'];
-				$final_data[$i]['firstName'] = $temp['FirstName'];
-				$final_data[$i]['comment'] = $temp['Comment'];
-	 
-				$images = array();
-				$cmd = 'SELECT * FROM '.IMAGE_TABLE.' WHERE CommentID = '.$temp['CommentID'];
-				$sql = $dbConn->prepare($cmd);
-				$sql->execute();
-				$image_array = $sql->fetchAll(PDO::FETCH_ASSOC);
-				foreach($image_array as $image_arr) {
-				  $images[] = $image_arr['Path'];
-				}			
-				$final_data[$i]['images'] = $images;
-			}
-		}
-		
+        $temp=$sql->fetch(PDO::FETCH_ASSOC);  
+        #print_r($temp);
         http_response_code(200);
         $resp = new stdClass(); 
-		$resp->productID = $data['productID'];
-		$resp->comments = $final_data;
+        $resp->message = $temp;
         echo json_encode($resp);
     }
     catch(Exception $e){
@@ -94,32 +74,6 @@ function getCommentsFromDB($data)
         return;
     }
 }
-function getImages($temp)
-{
-    $cmd = 'SELECT * FROM '.IMAGE_TABLE.' WHERE CommentID = '.$temp['CommentID'];
-    $sql = $dbConn->prepare($cmd);
-    $sql->execute();
-    while ($image_arr = $sql->fetch(PDO::FETCH_ASSOC)) {
-      $images[] = $image_arr['Path'];
-    }	    
-}
-/*function getComments($data)
-{
-    if(!isset($_POST['productID']))
-    {
-        throw new Exception("could not find product id");
-    }
-    else
-    {
-        $database = new Database();
-        $dbConn = $database->getConnection();
-        $cmd = 'SELECT * FROM '.COMMENT_TABLE.' AS C 
-        INNER JOIN '.IMAGE_TABLE.' AS CI 
-        ON C.CommentID = CI.CommentID 
-        WHERE C.ProductID ='.$data['productID'];
-        
-    }
-}*/
-# additional comment to a product
-# echo '{}';
+# Add comment to a product
+echo '{}';
 ?>
