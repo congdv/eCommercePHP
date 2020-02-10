@@ -32,33 +32,32 @@ $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'post'){
     try
     {
+        //get CartID for the User
         $cartID = addProductToCart($user);
         if($cartID){
             $data = json_decode(trim(file_get_contents("php://input")), true);
             if(isValidData($data)){
                 //if data and cartID found then add to DB
                 addProductToDB($data, $cartID);
+                http_response_code(200);
+                $resp = new stdClass();
+                $resp->message = "Successfully Added";
+                echo json_encode($resp);
             }
             else{
                 throw new Exception("Invalid Cart Data");
             }
         }
-        http_response_code(200);
-
-        $resp = new stdClass();
-        $resp->message = "Successfully Added";
-        echo json_encode($resp);
     }
     catch(Exception $e)
     {
-        http_response_code(401);
-        $resp = new stdClass();
-        $resp->error = "No Data";
-        $resp->message =  $e->getMessage();
-        echo json_encode($resp);
+        http_response_code(400);
+        $error = new stdClass();
+        $error->error = "Failed to add product";
+        $error->message = $e->getMessage();
+        echo json_encode($error);
+        return;
     }  
-}else{
-    http_response_code("403");
 }
 
 # Read all purchased that the user bought it
@@ -68,8 +67,10 @@ function addProductToCart($user){
         $dbConn = $database->getConnection();
         
         //get current cartID for user (CartStatus is zero for current cart)
-        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = '.$user['ID']. ' AND '.CART.'.CartStatus ='. 0;
+        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = :id AND '.CART.'.CartStatus = :cartStatus';
         $sql = $dbConn->prepare($cmd);
+        $sql->bindValue(':id',$user['ID']);
+        $sql->bindValue(':cartStatus', 0);
         $sql->execute();
         
         //return a single row
@@ -80,8 +81,10 @@ function addProductToCart($user){
         }
         else{
             //if doesn't exist create new cart ID for the user
-            $insertCmd = 'INSERT INTO '.CART.' (CartID, UserID, CartStatus) VALUES ( null,'.$user['ID'].' , '. 0 .');';
+            $insertCmd = 'INSERT INTO '.CART.' (CartID, UserID, CartStatus) VALUES ( null, :id , :cartStatus);';
             $sql = $dbConn->prepare($insertCmd);
+            $sql->bindValue(':id',$user['ID']);
+            $sql->bindValue(':cartStatus', 0);
             $sql->execute();
 
             //store the created CartID in a variable

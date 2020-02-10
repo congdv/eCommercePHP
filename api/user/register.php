@@ -12,7 +12,6 @@ include(CONFIG_PATH.'/database.php');
 include(LIB_PATH.'/JWT.php');
 include(HELPER_PATH.'/constants.php');
 
-
 # Constants
 define('TABLE', 'user');
 define('COLUMNS', 'Id, Email');

@@ -33,10 +33,12 @@ $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get'){
     try
     {
-        $purchasedProducts = userProducts($user); 
+        $carts = getOrderHistory($user); 
 
         # Sending back to client
-        echo (json_encode ($purchasedProducts));
+        $resp = new stdClass();
+        $resp->carts = $carts;
+        echo json_encode($resp);
     }
     catch(Exception $e)
     {
@@ -47,71 +49,76 @@ if($verb == 'get'){
         echo json_encode($resp);
     }
         
-}else{
-    http_response_code("403");
-    echo '{}';
 }
 
 //Read all the items User purchased
-function userProducts($user){
+function getOrderHistory($user){
     try{
         $database = new Database();
         $dbConn = $database->getConnection();
     
         //get cartID for user with CartStatus is one
-        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = '.$user['ID']. ' AND '.CART.'.CartStatus ='. 1;
+        $cmd = 'SELECT * FROM '.CART.' WHERE '.CART.'.UserID = :id AND '.CART.'.CartStatus = :cartStatus';
         $sql = $dbConn->prepare($cmd);
+        $sql->bindValue(':id',$user['ID']);
+        $sql->bindValue(':cartStatus', 1);
         $sql->execute();
 
-        //return a single row
-        $cartID = $sql->fetch(PDO::FETCH_ASSOC);
-        echo ($cartID['CartID']);
-        //get products in the CartID fetched
-        if($cartID['CartID']){
-            // $getProductsCmd = 'SELECT * FROM '.CART_DETAILS.'';
-            // $getProductsCmd = 'SELECT * FROM '.CART.' INNER JOIN '.CART_DETAILS.' ON '.CART.'.CartID = '. CART_DETAILS.'.CartID 
-            //     WHERE '.CART.'.CartID = '. $cartID['CartID'];
-            $getProductsCmd = 'SELECT * FROM'.CART.' 
-                INNER JOIN '.CART_DETAILS.'
-                ON '.CART.'.CartID = '.CART_DETAILS.'.CartID                
-                INNER JOIN '.PRODUCT.'
-                ON '.CART_DETAILS.'ProductID = '.PRODUCT.'ID
-                WHERE '.CART.'.CartID = '.$cartID['CartID'];
+        // Get all products in each cart
+        $carts = array();
+        while($row = $sql->fetch(PDO::FETCH_ASSOC)) {
+            $cart = getProductFromCart($row);
+            array_push($carts,$cart);
+        }
 
-            $sql = $dbConn->prepare($getProductsCmd);
-            $sql->execute();
+        return $carts;
+        
+        
+    }
+    catch(Exception $e){
+        throw new Exception("No Orders!");
+    }
 
-            print_r($dataArray);
-            
-            $dataArray = array();
-            while($data = $sql->fetch(PDO::FETCH_ASSOC))
-            {
-                //return everything from product table as well
-            $data =  array(
+}
+
+function getProductFromCart($cart) {
+    if($cart['CartID']){
+        $database = new Database();
+        $dbConn = $database->getConnection();
+        $getProductsCmd = 'SELECT * FROM '.CART.' 
+            INNER JOIN '.CART_DETAILS.'
+            ON '.CART.'.CartID = '.CART_DETAILS.'.CartID                
+            INNER JOIN '.PRODUCT.'
+            ON '.CART_DETAILS.'.ProductID = '.PRODUCT.'.ID
+            WHERE '.CART.'.CartID = :cartID';
+        
+        $sql = $dbConn->prepare($getProductsCmd);
+        $sql->bindValue(':cartID', $cart['CartID']);
+        $sql->execute();
+
+        $products = array();
+        while($data = $sql->fetch(PDO::FETCH_ASSOC))
+        {
+            //return everything from product table as well
+            $product =  array(
                 'cartDetailsID' => $data['CartDetailsID'],
-                'cartID' => $data['CartID'],
                 'productID' => $data['ProductID'],
                 'quantities' => $data['Quantities'],
                 'description' => $data['Description']
             );
-                array_push($dataArray,$data);
-            }
-            return $dataArray;
+            array_push($products,$product);
+        }
 
-        }else{
-            return null;
-        }       
-        
-    }
-    catch(Exception $e){
-        http_response_code(400);
-        $error = new stdClass();
-        $error->error = "Request Failed";
-        $error->message = $e->getMessage();
-        echo json_encode($error);
-        return;
-    }
+        //sending response to client
+        $returnedCart = new stdClass();
+        $returnedCart->cartID = $cart['CartID'];
+        $returnedCart->products = $products;
+        $returnedCart->purchasedDate = $cart['PurchasedDate'];
+        $returnedCart->shippingAddress = $cart['ShippingAddress'];
+        $returnedCart->paymentMethod = $cart['PaymentMethod'];
+        return $returnedCart;
 
+    }       
 }
 
 ?>
