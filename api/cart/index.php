@@ -6,11 +6,12 @@ header("Access-Control-Allow-Methods: GET");
 header("Access-Control-Allow-Credentials: true");
 header('Content-Type: application/json');
 
+#ecommerce database connection
+// include "../../config/database.php";
 
 # Root Path
 include('../../root.php');
 include(HELPER_PATH."/authenticationHelper.php");
-include(HELPER_PATH."/responseHelper.php");
 
 define('CART', 'cart');
 define('CART_DETAILS', 'cart_details');
@@ -21,7 +22,11 @@ $user = getAuthenticationUser();
 
 // Not found user from token
 if(!$user) {
-    invalidAuthenticationResponse();
+    http_response_code("401");
+    $error = new stdClass();
+    $error->error = "Forbidden Request";
+    $error->message = "Request has invalid authentication credentials";
+    echo json_encode($error);
     return;
 }
 
@@ -47,7 +52,11 @@ if($verb == 'get'){
     }
         
 }else{
-    unknownEndpointsResponse();
+    http_response_code("403");
+    $resp = new stdClass();
+    $resp->error = "Invalid";
+    $resp->message = "Unknown Endpoint";
+    echo json_encode($resp);
 }
 
 # Read all current Cart items of the User
@@ -88,12 +97,7 @@ function userCart($user){
                     'subTotal' => (string)($data['Pricing'] * $data['Quantities'] + $data['ShippingCost']));
                 array_push($dataArray,$data);
             }
-            // Format data for returning
-            $cart = new stdClass();
-            $cart->cartID = $cartID['CartID'];
-            $cart->products = $dataArray;
-
-            return $cart;
+            return $dataArray;
         }else{
             return null;
         }
@@ -110,8 +114,7 @@ function userCart($user){
 
 function sendResponseToClient($cartProducts){
     $resp = new stdclass();
-    $resp->cartID = $cartProducts->cartID;
-    $resp->products = $cartProducts->products;
+    $resp->products = $cartProducts;
     echo(json_encode($resp));
 }
 
