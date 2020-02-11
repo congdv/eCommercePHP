@@ -14,9 +14,9 @@ include(HELPER_PATH."/utilsHelper.php");
 include(HELPER_PATH."/authenticationHelper.php");
 
 #define table and columns
-define('USER_TABLE','user');
 define('COMMENT_TABLE', 'comment');
 define('IMAGE_TABLE','comment_image');
+define('USER_TABLE','user');
 
 # Require Authentication first
 $token = getTokenFromAuthorizationHeader();
@@ -51,6 +51,7 @@ if($verb == 'get') {
         echo json_encode($error);
         return;
     }
+
 } 
 else {
     http_response_code("403");
@@ -74,11 +75,15 @@ function getCommentsFromDB($productID)
         $database = new Database();
         $dbConn = $database->getConnection();
 
-        $cmd = 'SELECT * FROM '.COMMENT_TABLE.' AS C INNER JOIN '.USER_TABLE.' AS UI ON C.UserID = UI.ID WHERE C.ProductID = :productID';
-        
+        $cmd = 'SELECT * FROM '.COMMENT_TABLE.' AS C 
+        INNER JOIN '.USER_TABLE.' AS UI 
+        ON C.UserID = UI.ID 
+        WHERE C.ProductID = :productID';
+
         $sql = $dbConn->prepare($cmd);
         $sql->bindValue(':productID',$productID);
         $sql->execute();
+
         $final_data = array();
 		$comments_data = $sql->fetchAll(PDO::FETCH_ASSOC);
 		if($comments_data) {
@@ -105,6 +110,7 @@ function getCommentsFromDB($productID)
         $resp = new stdClass(); 
 		$resp->productID = $productID;
 		$resp->comments = $final_data;
+
         echo json_encode($resp);
     }
     catch(Exception $e){
@@ -144,4 +150,5 @@ function getCommentsFromDB($productID)
 }*/
 # additional comment to a product
 # echo '{}';
+
 ?>

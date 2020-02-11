@@ -33,10 +33,12 @@ $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get'){
     try
     {
-        $purchasedProducts = userProducts($user); 
+        $carts = getOrderHistory($user); 
 
         # Sending back to client
-        echo (json_encode ($purchasedProducts));
+        $resp = new stdClass();
+        $resp->carts = $carts;
+        echo json_encode($resp);
     }
     catch(Exception $e)
     {
@@ -50,7 +52,7 @@ if($verb == 'get'){
 }
 
 //Read all the items User purchased
-function userProducts($user){
+function getOrderHistory($user){
     try{
         $database = new Database();
         $dbConn = $database->getConnection();
@@ -62,56 +64,61 @@ function userProducts($user){
         $sql->bindValue(':cartStatus', 1);
         $sql->execute();
 
-        //return a single row
-        $cartID = $sql->fetch(PDO::FETCH_ASSOC);
-        // print_r($cartID);
-        // print_r($user);
-        //get products in the CartID fetched
-        if($cartID['CartID']){
-            $getProductsCmd = 'SELECT * FROM '.CART.' 
-                INNER JOIN '.CART_DETAILS.'
-                ON '.CART.'.CartID = '.CART_DETAILS.'.CartID                
-                INNER JOIN '.PRODUCT.'
-                ON '.CART_DETAILS.'.ProductID = '.PRODUCT.'.ID
-                WHERE '.CART.'.CartID = :cartID';
-            
-            $sql = $dbConn->prepare($getProductsCmd);
-            $sql->bindValue(':cartID', $cartID['CartID']);
-            $sql->execute();
+        // Get all products in each cart
+        $carts = array();
+        while($row = $sql->fetch(PDO::FETCH_ASSOC)) {
+            $cart = getProductFromCart($row);
+            array_push($carts,$cart);
+        }
 
-            $dataArray = array();
-            while($data = $sql->fetch(PDO::FETCH_ASSOC))
-            {
-                //return everything from product table as well
-                $data =  array(
-                    'cartDetailsID' => $data['CartDetailsID'],
-                    'productID' => $data['ProductID'],
-                    'quantities' => $data['Quantities'],
-                    'description' => $data['Description']
-                );
-                array_push($dataArray,$data);
-            }
-
-            //sending response to client
-            $res = new stdClass();
-            $res->cartID = $cartID['CartID'];
-            $res->products = $dataArray;
-            return $res;
-
-        }else{
-            return null;
-        }       
+        return $carts;
+        
         
     }
     catch(Exception $e){
-        http_response_code(400);
-        $error = new stdClass();
-        $error->error = "Request Failed";
-        $error->message = $e->getMessage();
-        echo json_encode($error);
-        return;
+        throw new Exception("No Orders!");
     }
 
+}
+
+function getProductFromCart($cart) {
+    if($cart['CartID']){
+        $database = new Database();
+        $dbConn = $database->getConnection();
+        $getProductsCmd = 'SELECT * FROM '.CART.' 
+            INNER JOIN '.CART_DETAILS.'
+            ON '.CART.'.CartID = '.CART_DETAILS.'.CartID                
+            INNER JOIN '.PRODUCT.'
+            ON '.CART_DETAILS.'.ProductID = '.PRODUCT.'.ID
+            WHERE '.CART.'.CartID = :cartID';
+        
+        $sql = $dbConn->prepare($getProductsCmd);
+        $sql->bindValue(':cartID', $cart['CartID']);
+        $sql->execute();
+
+        $products = array();
+        while($data = $sql->fetch(PDO::FETCH_ASSOC))
+        {
+            //return everything from product table as well
+            $product =  array(
+                'cartDetailsID' => $data['CartDetailsID'],
+                'productID' => $data['ProductID'],
+                'quantities' => $data['Quantities'],
+                'description' => $data['Description']
+            );
+            array_push($products,$product);
+        }
+
+        //sending response to client
+        $returnedCart = new stdClass();
+        $returnedCart->cartID = $cart['CartID'];
+        $returnedCart->products = $products;
+        $returnedCart->purchasedDate = $cart['PurchasedDate'];
+        $returnedCart->shippingAddress = $cart['ShippingAddress'];
+        $returnedCart->paymentMethod = $cart['PaymentMethod'];
+        return $returnedCart;
+
+    }       
 }
 
 ?>
