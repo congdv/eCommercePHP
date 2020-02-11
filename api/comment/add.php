@@ -18,6 +18,9 @@ define('IMAGE_TABLE','comment_image');
 # Require Authentication first
 $token = getTokenFromAuthorizationHeader();
 $user = getAuthenticationUser($token);
+$userID = $user['ID'];
+#echo $userID;
+#die;
 
 // Not found user from token
 if(!$user) {
@@ -50,13 +53,12 @@ if($verb == 'post') {
 		}
 	}
     else{
-        /*http_response_code(400);
+        http_response_code("401");
         $error = new stdClass();
-        $error->error = "user is not authorised to write a comment";
-        $error->message = $e->getMessage();
+        $error->error = "Forbidden Request";
+        $error->message = "This user is not allowed to add comment(s). ";
         echo json_encode($error);
-        return;*/
-        echo "User is not authorised to add a comment {}";
+        return;
     }
 } 
 else {
@@ -64,10 +66,18 @@ else {
     echo '{}';
 }
 
+function getUserID()
+{
+    $token = getTokenFromAuthorizationHeader();
+    $user = getAuthenticationUser($token);
+    $result = $user['ID'];
+    return $result;    
+}
 #verify user returns true if user exists with product.
 function verifyPurchase($data)
 {
     try{
+        $userID = getUserID();
         $database = new Database();
         $dbConn = $database->getConnection();
         $cmd = 'SELECT C.UserID, CD.ProductID 
@@ -76,7 +86,7 @@ function verifyPurchase($data)
                 ON C.CartID = CD.CartID 
                 WHERE C.UserID = :userID';
         $sql = $dbConn->prepare($cmd);
-        $sql->bindValue(':userID',$data['userID']);
+        $sql->bindValue(':userID', $userID);
         $sql->execute();
         $result = $sql->fetch(PDO::FETCH_ASSOC);
         #print_r($result); 
@@ -101,12 +111,13 @@ function verifyPurchase($data)
 # comment function 
 function addComment($data)
 {
+    $userID = getUserID();
     $database = new Database();
     $dbConn = $database->getConnection();
     $cmd = 'INSERT INTO ' . COMMENT_TABLE . ' (UserID,ProductID,Comment,Rating) ' . 
     ' VALUES (:userID, :productID, :comment, :rating) ';
     $sql = $dbConn->prepare($cmd);
-    $sql->bindValue(':userID', $data['userID']);
+    $sql->bindValue(':userID', $userID);
     $sql->bindValue(':productID', $data['productID']);
     $sql->bindValue(':comment', $data['comment']);
     $sql->bindValue(':rating', $data['rating']);
