@@ -38,9 +38,9 @@ if($verb == 'post') {
                 if(isCartEmpty($currentCartID,$data)) {
                    removeCart($currentCartID,$user);
                 }
-            $resp = new stdClass();
-            $resp->message = "Product removed";
-            echo json_encode($resp);
+                $resp = new stdClass();
+                $resp->message = "Product removed";
+                echo json_encode($resp);
                 
             } else {
                 throw new Exception("No product to remove");

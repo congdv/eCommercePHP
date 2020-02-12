@@ -40,6 +40,10 @@ if($verb == 'get'){
         # Sending back to client
         if(!empty($cartProducts)){
             sendResponseToClient($cartProducts);
+        } else {
+            $resp = new stdclass();
+            $resp->products = array();
+            echo(json_encode($resp));
         }
     }
     catch(Exception $e)
@@ -47,7 +51,7 @@ if($verb == 'get'){
         http_response_code(401);
         $resp = new stdClass();
         $resp->error = "Invalid Data";
-        $resp->message = "No product in Cart.";
+        $resp->message = $e->getMessage();
         echo json_encode($resp);
     }
         
@@ -99,7 +103,7 @@ function userCart($user){
             }
             return $dataArray;
         }else{
-            return null;
+            return NULL;
         }
     }
     catch(Exception $e){
