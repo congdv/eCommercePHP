@@ -22,16 +22,6 @@ define('USER_TABLE','user');
 $token = getTokenFromAuthorizationHeader();
 $user = getAuthenticationUser($token);
 
-# Aurthorization is not required for GET method; user can read comment without login
-/*if(!$user) {
-    http_response_code("401");
-    $error = new stdClass();
-    $error->error = "Forbidden Request";
-    $error->message = "Request has invalid authentication credentials";
-    echo json_encode($error);
-    return;
-}*/
-
 # checking GET method
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == 'get') {
@@ -122,33 +112,4 @@ function getCommentsFromDB($productID)
         return;
     }
 }
-/* function getImages($temp)
-{
-    $cmd = 'SELECT * FROM '.IMAGE_TABLE.' WHERE CommentID = '.$temp['CommentID'];
-    $sql = $dbConn->prepare($cmd);
-    $sql->execute();
-    while ($image_arr = $sql->fetch(PDO::FETCH_ASSOC)) {
-      $images[] = $image_arr['Path'];
-    }	    
-}*/
-/*function getComments($data)
-{
-    if(!isset($_POST['productID']))
-    {
-        throw new Exception("could not find product id");
-    }
-    else
-    {
-        $database = new Database();
-        $dbConn = $database->getConnection();
-        $cmd = 'SELECT * FROM '.COMMENT_TABLE.' AS C 
-        INNER JOIN '.IMAGE_TABLE.' AS CI 
-        ON C.CommentID = CI.CommentID 
-        WHERE C.ProductID ='.$data['productID'];
-        
-    }
-}*/
-# additional comment to a product
-# echo '{}';
-
 ?>
