@@ -81,7 +81,7 @@ function userCart($user){
                         ' INNER JOIN '.PRODUCT.' ON '.CART_DETAILS.'.ProductID = '.PRODUCT.'.ID'.
                         ' WHERE '.CART_DETAILS.'.CartID = :id';
             $sql = $dbConn->prepare($cmdjoin);
-            $sql->bindValue(':id',$user['ID']);
+            $sql->bindValue(':id',$cartID['CartID']);
             $sql->execute();
 
             $dataArray = array();

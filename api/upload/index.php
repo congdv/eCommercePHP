@@ -30,8 +30,8 @@ if(!$user) {
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == "post") {
-    $targetDir = ASSETS_PATH."/images";
-    $targetDir = $targetDir."/".date("Y/m/d");
+    $targetDir = "/assets/images";
+    #$targetDir = $targetDir;
 
     # Check directory is exists
     if(!file_exists($targetDir)) {
@@ -45,9 +45,12 @@ if($verb == "post") {
         $targetFilePath = $targetDir."/".uniqid("i").".".$pathFileType;
     }
     $success  = false;
-    if(move_uploaded_file($_FILES["img"]["tmp_name"],ROOT_PATH."".$targetFilePath)) {
-        $success = true;
+    if(!file_exists($targetFilePath)) {
+        if(move_uploaded_file($_FILES["img"]["tmp_name"],$_SERVER['DOCUMENT_ROOT'].$targetFilePath)) {
+            $success = true;
+        }
     }
+    
 
     if($success) {
         $resp = new stdClass();
