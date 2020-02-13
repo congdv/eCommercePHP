@@ -33,8 +33,8 @@ if($verb == 'post') {
         $currentCartID = getCurrentCartIdOfUser($user);
         if($currentCartID) {
             $data = json_decode(trim(file_get_contents("php://input")), true);
-            if (removeProductFromCart($currentCartID,$data)) {
-               
+            if (isProductInCart($currentCartID,$data)) {
+                removeProductFromCart($currentCartID,$data);
                 if(isCartEmpty($currentCartID,$data)) {
                    removeCart($currentCartID,$user);
                 }
@@ -43,7 +43,7 @@ if($verb == 'post') {
             echo json_encode($resp);
                 
             } else {
-                throw new Exception("No product to remove");
+                throw new Exception("No such product to remove");
             }
         } else {
             throw new Exception("The user doesn't have any cart");
@@ -53,7 +53,7 @@ if($verb == 'post') {
     {
         http_response_code(400);
         $error = new stdClass();
-        $error->error = "Failed to remove product in cart";
+        $error->error = "Invalid Request";
         $error->message = $e->getMessage();
         echo json_encode($error);
         return;
@@ -74,6 +74,17 @@ function getCurrentCartIdOfUser($user)
     return $cartID && isset($cartID['CartID']) ? $cartID['CartID'] : NULL;
 }
 
+# Check if product exist in cart
+function isProductInCart($cartID, $data) {
+    $database = new Database();
+    $dbConn = $database->getConnection();
+    $cmd = 'SELECT CartID FROM '.CART_DETAILS.' WHERE ProductID = :productID;';
+    $sql = $dbConn->prepare($cmd);
+    $sql->bindValue('productID',$data['productID']);
+    $sql->execute();
+    return $sql->rowCount() > 0 ? true : false;
+}
+
 # Removing product from cart
 function removeProductFromCart($cartID, $data) {
     $database = new Database();
@@ -82,9 +93,7 @@ function removeProductFromCart($cartID, $data) {
     $sql = $dbConn->prepare($cmd);
     $sql->bindValue('cartID',$cartID);
     $sql->bindValue('productID',$data['productID']);
-    $sql->execute();
-    return true;
-    
+    $sql->execute();    
 }
 # CHECK IF CART IS EMPTY
 function isCartEmpty($cartID, $data) {
