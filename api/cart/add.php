@@ -13,6 +13,7 @@ include(HELPER_PATH."/authenticationHelper.php");
 
 define('CART', 'cart');
 define('CART_DETAILS', 'cart_details');
+define('PRODUCT', 'product');
 
 # Require Authentication first
 $user = getAuthenticationUser();
@@ -37,12 +38,17 @@ if($verb == 'post'){
         if($cartID){
             $data = json_decode(trim(file_get_contents("php://input")), true);
             if(isValidData($data)){
-                //if data and cartID found then add to DB
-                addProductToDB($data, $cartID);
-                http_response_code(200);
-                $resp = new stdClass();
-                $resp->message = "Successfully Added";
-                echo json_encode($resp);
+                //Check if product exist in product List
+                if(isProductFound($data)){
+                    //if productID and cartID found then add to DB
+                    addProductToDB($data, $cartID);
+                    http_response_code(200);
+                    $resp = new stdClass();
+                    $resp->message = "Successfully Added";
+                    echo json_encode($resp);
+                }else{
+                    throw new Exception("Product Not Found");
+                }
             }
             else{
                 throw new Exception("Invalid Cart Data");
@@ -119,6 +125,16 @@ function addProductToDB($data, $cartID){
     $sql->bindValue(':quantities', isset($data['quantities']) ? $data['quantities'] : '');
     $sql->bindValue(':cartID', isset($cartID) ? $cartID : '');
     $sql->execute();
+}
+
+function isProductFound($data){
+    $database = new Database();
+    $dbConn = $database->getConnection();
+    $cmd = 'SELECT ID FROM '.PRODUCT.' WHERE ID = :productID;';
+    $sql = $dbConn->prepare($cmd);
+    $sql->bindValue('productID',$data['productID']);
+    $sql->execute();
+    return $sql->rowCount() > 0 ? true : false;
 }
     
 ?>
