@@ -30,24 +30,26 @@ if(!$user) {
 
 $verb = strtolower($_SERVER['REQUEST_METHOD']);
 if($verb == "post") {
-    $targetDir = ASSETS_PATH."/images";
-    $targetDir = $targetDir."/".date("Y/m/d");
+    $targetDir = "/assets/images";
+    $relativeDir = "../..";
 
     # Check directory is exists
-    if(!file_exists($targetDir)) {
-        mkdir($targetDir,077,true);
+    if(!file_exists($relativeDir.$targetDir)) {
+        mkdir($relativeDir.$targetDir,077,true);
     }
-
     $targetFilePath = $targetDir."/". basename($_FILES["img"]["name"]);
     # Check file path is exists
-    if(file_exists($targetFilePath)) {
+    if(file_exists($relativeDir.$targetFilePath)) {
         $pathFileType = strtolower(pathinfo($targetFilePath,PATHINFO_EXTENSION));
         $targetFilePath = $targetDir."/".uniqid("i").".".$pathFileType;
     }
     $success  = false;
-    if(move_uploaded_file($_FILES["img"]["tmp_name"],ROOT_PATH."".$targetFilePath)) {
-        $success = true;
+    if(!file_exists($targetFilePath)) {
+        if(move_uploaded_file($_FILES["img"]["tmp_name"],$relativeDir.$targetFilePath)) {
+            $success = true;
+        }
     }
+    
 
     if($success) {
         $resp = new stdClass();
