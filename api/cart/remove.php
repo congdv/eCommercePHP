@@ -78,8 +78,10 @@ function getCurrentCartIdOfUser($user)
 function isProductInCart($cartID, $data) {
     $database = new Database();
     $dbConn = $database->getConnection();
-    $cmd = 'SELECT CartID FROM '.CART_DETAILS.' WHERE ProductID = :productID;';
+    $cmd = 'SELECT * FROM '.CART_DETAILS.' WHERE CartID = :cartID AND ProductID = :productID;';
     $sql = $dbConn->prepare($cmd);
+    
+    $sql->bindValue('cartID',$cartID);
     $sql->bindValue('productID',$data['productID']);
     $sql->execute();
     return $sql->rowCount() > 0 ? true : false;
